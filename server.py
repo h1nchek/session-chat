@@ -86,6 +86,7 @@ async def handler(ws):
         room_code = str(join.get("room_code", "")).strip()
         place_id = str(join.get("place_id", "")).strip()
         room_id = str(join.get("room_id", "")).strip()[:100]
+        game_place_id = ""
 
         if room_code:
             if len(room_code) != 4 or not room_code.isdigit():
@@ -102,22 +103,22 @@ async def handler(ws):
                 await send_json(ws, {"type": "error", "message": "Invalid PlaceId"})
                 return
             room_id = f"place:{place_id}"
+            game_place_id = place_id
         if not room_id:
             await send_json(ws, {"type": "error", "message": "A room code, PlaceId, or room_id is required"})
             return
 
         joined_rooms.add(room_id)
-        # Desktop sessions also join the game-wide PlaceId room. A private
-        # room never joins the public game room.
-        if join.get("share_code") and "_" in room_id:
-            parsed_place_id = room_id.split("_", 1)[0]
-            if parsed_place_id.isdigit():
-                joined_rooms.add(f"place:{parsed_place_id}")
-                invite_code = make_invite_code()
-                invite_codes[invite_code] = room_id
+        # Desktop starts in its exact JobId room. /global explicitly adds
+        # the shared PlaceId room. A private invite remains private.
+        if join.get("share_code") and game_place_id:
+            invite_code = make_invite_code()
+            invite_codes[invite_code] = room_id
         elif join.get("create_private"):
             invite_code = make_invite_code()
             invite_codes[invite_code] = room_id
+        if game_place_id:
+            await send_json(ws, {"type": "game_context", "place_id": game_place_id})
 
         for joined_room in joined_rooms:
             rooms.setdefault(joined_room, set()).add(ws)
@@ -138,7 +139,29 @@ async def handler(ws):
                 packet = json.loads(raw)
             except (json.JSONDecodeError, TypeError):
                 continue
-            if not isinstance(packet, dict) or packet.get("type") != "message":
+            if not isinstance(packet, dict):
+                continue
+            if packet.get("type") == "global":
+                if not game_place_id:
+                    await send_json(ws, {"type": "error", "message": "Global chat is available when a PlaceId is detected"})
+                    continue
+                global_room = f"place:{game_place_id}"
+                if bool(packet.get("enabled")):
+                    if global_room not in joined_rooms:
+                        joined_rooms.add(global_room)
+                        rooms.setdefault(global_room, set()).add(ws)
+                    await send_json(ws, {"type": "global_status", "enabled": True, "place_id": game_place_id})
+                    await broadcast({global_room}, {"type": "system", "message": f"{nickname} joined the global chat"})
+                else:
+                    if global_room in joined_rooms:
+                        joined_rooms.discard(global_room)
+                        members = rooms.get(global_room, set())
+                        members.discard(ws)
+                        if not members:
+                            rooms.pop(global_room, None)
+                    await send_json(ws, {"type": "global_status", "enabled": False, "place_id": game_place_id})
+                continue
+            if packet.get("type") != "message":
                 continue
 
             text = str(packet.get("text", "")).strip()[:200]
