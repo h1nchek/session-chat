@@ -40,7 +40,7 @@ The server listens on `0.0.0.0:8765`.
 
 ## Configure and run the client
 
-Set `SERVER_URL` near the top of `client.py`.
+Set `SERVER_URL` near the top of `client.py`. If your launcher uses a non-standard game-log directory, set `ROBLOX_LOG_DIR` to that folder before starting the client.
 
 For a server on the same computer:
 
@@ -70,6 +70,14 @@ Enter a nickname when prompted. When Roblox writes a matching session line to it
 | `Enter` | Send the message |
 | `Escape` | Close the input |
 | `/mute Nick` | Hide messages from that nickname locally |
+
+## Launcher compatibility
+
+The client does not need to identify whether Roblox was started by the official launcher, Bloxstrap, or Fishstrap. It watches the Roblox game-session log directory used by the running game client. Standard installations should work without launcher-specific configuration. If a custom setup writes the game log elsewhere, configure `ROBLOX_LOG_DIR`. This compatibility is based on the shared Roblox runtime/log format and has not yet been verified against every launcher version.
+
+## Android
+
+An Android client is planned as a separate app. It can use the existing WebSocket room/message protocol, but it cannot read Windows Roblox logs or provide the same desktop click-through overlay. The first Android version should let the user enter a room ID manually (or receive it from a paired desktop client), then chat and manage nickname/mute/theme settings.
 
 ## Notes and limitations
 
