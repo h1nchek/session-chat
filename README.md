@@ -12,7 +12,9 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 - Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
 - While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
 - Local `/mute Nick` command.
-- WebSocket server routes messages by room and limits each client to one message per second.
+- Create temporary private rooms and invite friends with a 4-digit code; desktop and Android clients can join with the same code.
+- Join a friend's room from the PC overlay through **Settings → Join by code**.
+- Server-side chat filter limits message frequency, blocks repeated messages, and rejects links and common account/Robux scam phrases.
 - Nicknames are limited to 20 characters and messages to 200 characters.
 
 ## Requirements
@@ -97,7 +99,7 @@ The server must be reachable from the phone and its port must be allowed through
 
 - This is an early, minimal implementation, not a hardened public chat service.
 - The client uses WinAPI polling for the global `T` hotkey. The key may also be received by the game.
-- The server has no account authentication, encryption, moderation, or persistent history. Do not expose it directly to the public internet.
+- The server has no account authentication, transport encryption, or persistent history. Its basic anti-spam/anti-phishing filter is not a substitute for human moderation. Do not expose it directly to the public internet.
 - The overlay is Windows-only. The WebSocket server can run on other platforms.
 - Room IDs are based on values found in local Roblox logs; the server does not independently verify game-session membership.
 
