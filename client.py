@@ -265,6 +265,13 @@ class OverlayChat:
             command=self.save_nickname
         )
         self.save_nickname_button.pack(fill="x", padx=9, pady=(2, 6))
+        self.done_settings_button = ctk.CTkButton(
+            self.settings_frame, text="Done  ·  return to game",
+            height=25, corner_radius=8, fg_color="#30394A",
+            hover_color="#3B4960", text_color="#DCE7F7",
+            font=("Segoe UI", 8), command=self.deactivate_input
+        )
+        self.done_settings_button.pack(fill="x", padx=9, pady=(0, 7))
         opacity_row = ctk.CTkFrame(
             self.settings_frame, fg_color="transparent"
         )
