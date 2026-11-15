@@ -12,6 +12,8 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 - Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
 - While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
 - Local `/mute Nick` command.
+- Soft incoming-message notification tone with a one-click **♪ ON/OFF** toggle in the header (enabled by default).
+- Messages containing `@YourNickname` are highlighted in the chat; matching is case-insensitive.
 - `/global`, `/global on`, and `/global off` toggle a cross-server chat shared by all SessionChat users in the same `PlaceId`.
 - Create temporary private rooms and invite friends with a 4-digit code; desktop and Android clients can join with the same code.
 - Join a friend's room from the PC overlay through **Settings → Join by code**.
@@ -73,6 +75,8 @@ Enter a nickname when prompted. When Roblox writes a matching session line to it
 | `Enter` | Send the message |
 | `Escape` | Close the input |
 | `/mute Nick` | Hide messages from that nickname locally |
+| `♪ ON/OFF` | Toggle incoming-message notification sound |
+| `@YourNickname` | Mention a player; their client highlights the message |
 | `/global` or `/global on` | Join the shared chat for the current `PlaceId`, across all Roblox `JobId` servers |
 | `/global off` | Leave the PlaceId-wide chat and keep the current server chat |
 
