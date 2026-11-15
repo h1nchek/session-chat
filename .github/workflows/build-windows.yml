@@ -1,0 +1,66 @@
+name: Build Windows executable
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install "pyinstaller>=6,<7"
+
+      - name: Build SessionChat.exe
+        run: >-
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name SessionChat
+          --collect-all customtkinter
+          --collect-all websockets
+          client.py
+
+      - name: Create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist/SessionChat.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  SessionChat.exe" | Set-Content -Encoding ascii dist/SHA256SUMS.txt
+
+      - name: Attest executable provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/SessionChat.exe
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SessionChat-Windows
+          path: |
+            dist/SessionChat.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach executable to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.ref_name }}" dist/SessionChat.exe dist/SHA256SUMS.txt --clobber
