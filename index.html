@@ -2,38 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090d18">
-  <meta name="description" content="SessionChat — a lightweight real-time Roblox session overlay chat for Windows, with an Android companion app.">
-  <title>SessionChat — Roblox session chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="SessionChat — open-source Roblox session chat overlay for Windows, with an Android companion app.">
+  <title>SessionChat — Play together. Stay connected.</title>
   <style>
-    :root{color-scheme:dark;--bg:#090d18;--panel:#111a2b;--line:#26344d;--muted:#a6b4ca;--text:#f3f6fc;--accent:#8b9cff;--cyan:#65dfd0}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#1b2850 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-    a{color:inherit}.wrap{width:min(1080px,calc(100% - 40px));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff14}.brand{font-weight:800;letter-spacing:.3px;font-size:20px}.brand span{color:var(--cyan)}.nav a{color:var(--muted);text-decoration:none;margin-left:22px;font-size:14px}
-    .hero{padding:82px 0 66px;display:grid;grid-template-columns:1.1fr .9fr;gap:54px;align-items:center}.eyebrow{color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:2px;font-size:12px}.hero h1{font-size:clamp(42px,6vw,68px);line-height:1.04;letter-spacing:-2.5px;margin:15px 0 20px}.hero p{color:var(--muted);font-size:18px;max-width:580px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 19px;border-radius:12px;text-decoration:none;font-weight:750;background:linear-gradient(120deg,#9aa8ff,#70e1d4);color:#07101b}.btn.secondary{background:#172239;color:var(--text);border:1px solid var(--line)}
-    .mock-wrap{padding:22px;background:linear-gradient(145deg,#182644,#0e1525);border:1px solid #354565;border-radius:22px;box-shadow:0 30px 90px #0008}.mock{background:#0b1220;border:1px solid #405071;border-radius:15px;overflow:hidden;box-shadow:0 12px 30px #0008;font-size:13px}.bar{padding:12px 14px;background:#18243b;display:flex;justify-content:space-between;font-weight:700}.online{color:var(--cyan);font-size:11px}.messages{padding:18px;min-height:176px}.msg{margin:8px 0;color:#dbe4f4}.msg b{color:#aab8ff}.msg.mention{background:#263253;border-left:3px solid var(--cyan);padding:7px 9px;border-radius:5px}.input{margin:0 13px 13px;border:1px solid #405071;border-radius:8px;padding:9px 11px;color:#8190a9}.mock-note{color:#94a5c0;font-size:11px;text-align:center;margin:12px 0 0}
-    section{padding:56px 0;border-top:1px solid #ffffff12}h2{font-size:32px;letter-spacing:-.8px;margin:0 0 12px}.lead{color:var(--muted);max-width:720px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}.card{padding:22px;background:#111a2b;border:1px solid var(--line);border-radius:16px}.card h3{margin:0 0 8px}.card p{margin:0;color:var(--muted);font-size:14px}.security{border-color:#41615e}.license{display:inline-block;padding:5px 9px;border:1px solid #4c7771;border-radius:8px;color:var(--cyan);font-weight:700;font-size:13px}
-    footer{padding:28px 0 46px;color:var(--muted);font-size:13px;border-top:1px solid #ffffff12}footer a{color:var(--text)}
-    @media(max-width:760px){.hero{grid-template-columns:1fr;padding:58px 0 42px;gap:32px}.cards{grid-template-columns:1fr}.nav a{margin-left:12px}.nav .links a:first-child{display:none}}
+    :root{color-scheme:dark;--bg:#0b0d12;--panel:#121720;--panel2:#171e29;--line:#283241;--text:#f4f7fb;--muted:#9ba8b9;--accent:#a6f06b;--accent2:#c8ff9d;--blue:#a9c7ff;--max:1120px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 82% -10%,#263b2b 0,transparent 32%),radial-gradient(ellipse at 0% 28%,#17243a 0,transparent 28%),var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    a{color:inherit}.wrap{width:min(var(--max),calc(100% - 44px));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12}.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:850;letter-spacing:-.5px;font-size:20px}.mark{width:30px;height:30px;border-radius:10px;background:var(--accent);color:#11180d;display:grid;place-items:center;font-size:17px;font-weight:950}.brand span{color:var(--accent)}.navlinks{display:flex;align-items:center;gap:25px}.navlinks a{font-size:13px;color:var(--muted);text-decoration:none}.navlinks a:hover{color:var(--text)}.lang{border:1px solid var(--line);background:#151b24;color:var(--text);padding:8px 11px;border-radius:9px;font-weight:750;cursor:pointer}
+    .hero{padding:88px 0 82px;display:grid;grid-template-columns:1.04fr .96fr;gap:58px;align-items:center}.kicker{display:inline-flex;gap:9px;align-items:center;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:1.8px;text-transform:uppercase}.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 16px #a6f06b88}.hero h1{font-size:clamp(44px,6.3vw,76px);line-height:.99;letter-spacing:-4px;margin:20px 0 22px;max-width:650px}.hero h1 em{font-style:normal;color:var(--accent)}.hero p{font-size:18px;color:var(--muted);max-width:570px;margin:0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 19px;border-radius:11px;text-decoration:none;font-weight:800;font-size:14px;transition:transform .18s,background .18s}.btn:hover{transform:translateY(-2px)}.primary{background:var(--accent);color:#10170c}.primary:hover{background:var(--accent2)}.secondary{border:1px solid #3a4656;background:#171e29;color:var(--text)}.fine{font-size:12px;color:#788697;margin-top:14px}
+    .visual{position:relative;padding:23px;border:1px solid #ffffff1c;border-radius:22px;background:linear-gradient(145deg,#1a2330,#111720);box-shadow:0 32px 90px #0008}.visual:before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,#a6f06b30,transparent 42%,#9dbdff22);pointer-events:none}.window{position:relative;background:#0c1118;border:1px solid #354153;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px #0008}.windowbar{height:43px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;background:#171f2a;border-bottom:1px solid #293342;font-size:11px;font-weight:850;letter-spacing:.5px}.status{color:var(--accent);font-size:10px}.chat{padding:19px 17px 16px;min-height:205px}.line{font-size:13px;color:#d9e1ec;margin:10px 0}.line b{color:var(--blue);margin-right:5px}.line.highlight{padding:9px 11px;border-radius:8px;background:#27352a;border-left:3px solid var(--accent);color:#eff8e8}.compose{margin:0 13px 13px;padding:10px 12px;border:1px solid #344153;border-radius:9px;color:#8290a2;font-size:12px}.caption{position:relative;text-align:center;color:#7e8b9b;font-size:10px;margin:13px 0 0}
+    section{padding:74px 0;border-top:1px solid #ffffff12}.sectionhead{max-width:680px;margin-bottom:30px}.eyebrow{color:var(--accent);font-size:11px;font-weight:850;letter-spacing:1.7px;text-transform:uppercase}.sectionhead h2{font-size:clamp(30px,4vw,43px);line-height:1.1;letter-spacing:-1.7px;margin:10px 0}.sectionhead p{color:var(--muted);margin:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.card{padding:23px;background:linear-gradient(150deg,#171e28,#111720);border:1px solid var(--line);border-radius:15px;min-height:175px}.icon{width:36px;height:36px;display:grid;place-items:center;background:#a6f06b15;color:var(--accent);border:1px solid #a6f06b24;border-radius:10px;font-size:17px}.card h3{font-size:16px;margin:17px 0 7px;letter-spacing:-.3px}.card p{font-size:13px;color:var(--muted);margin:0}.securitygrid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.securitycard{padding:26px;border:1px solid #405444;border-radius:16px;background:linear-gradient(145deg,#1b2920,#121a18)}.license{display:inline-flex;padding:6px 10px;border:1px solid #66845c;border-radius:8px;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.5px}.securitycard h3{font-size:23px;margin:17px 0 8px}.securitycard p,.securitynote p{font-size:13px;color:#b1bdaf;margin:0}.securitynote{padding:25px;border:1px solid var(--line);border-radius:16px;background:#131923}.securitynote h3{margin:0 0 10px;font-size:17px}.securitynote p{color:var(--muted)}.actions.small{margin-top:22px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.step{padding:20px;border-radius:14px;background:#121923;border:1px solid var(--line)}.num{color:var(--accent);font-size:12px;font-weight:900;letter-spacing:1px}.step h3{margin:9px 0 6px;font-size:15px}.step p{font-size:13px;color:var(--muted);margin:0}.step code{color:#d7e5c9;background:#202b23;padding:2px 5px;border-radius:4px}
+    footer{padding:30px 0 42px;border-top:1px solid #ffffff12;color:#7f8b9b;font-size:12px}.foot{display:flex;align-items:center;justify-content:space-between;gap:20px}.foot a{color:#c8d1dd;text-decoration:none}
+    [data-lang="ru"]{display:none}body.ru [data-lang="en"]{display:none}body.ru [data-lang="ru"]{display:initial}body.ru .block[data-lang="ru"]{display:block}body.ru .flex[data-lang="ru"]{display:flex}body.ru .grid[data-lang="ru"]{display:grid}
+    @media(max-width:780px){.hero{grid-template-columns:1fr;padding:62px 0;gap:34px}.hero h1{letter-spacing:-2.7px}.grid,.steps{grid-template-columns:1fr 1fr}.securitygrid{grid-template-columns:1fr}.navlinks{gap:12px}.navlinks a:not(.always){display:none}}
+    @media(max-width:520px){.wrap{width:min(var(--max),calc(100% - 30px))}.nav{height:66px}.brand{font-size:18px}.grid,.steps{grid-template-columns:1fr}.visual{padding:12px}.chat{min-height:180px}.hero p{font-size:16px}.actions .btn{width:100%}.foot{align-items:flex-start;flex-direction:column}}
   </style>
 </head>
 <body>
-<header class="wrap nav"><a class="brand" href="#" style="text-decoration:none">Session<span>Chat</span></a><div class="links"><a href="#features">Features</a><a href="#security">Security</a><a href="https://github.com/h1nchek/session-chat">GitHub ↗</a></div></header>
+<header class="wrap nav">
+  <a class="brand" href="#"><span class="mark">S</span>Session<span>Chat</span></a>
+  <nav class="navlinks">
+    <a href="#features" data-lang="en">Features</a><a href="#features" data-lang="ru">Возможности</a>
+    <a href="#get-started" data-lang="en">Get started</a><a href="#get-started" data-lang="ru">Установка</a>
+    <a href="#security" data-lang="en">Security</a><a href="#security" data-lang="ru">Безопасность</a>
+    <a class="always" href="https://github.com/h1nchek/session-chat">GitHub ↗</a>
+    <button class="lang" id="langToggle" type="button" aria-label="Switch language">RU</button>
+  </nav>
+</header>
 <main>
   <div class="wrap hero">
-    <div><div class="eyebrow">Roblox · Windows · Android</div><h1>Your game.<br>One conversation.</h1><p>A lightweight real-time overlay chat that follows your Roblox session, connects friends across servers, and includes an Android companion app.</p><div class="actions"><a class="btn" href="https://github.com/h1nchek/session-chat/releases/latest/download/SessionChat.exe">↓ Download latest version</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat">View source ↗</a></div></div>
-    <div class="mock-wrap"><div class="mock"><div class="bar"><span>SessionChat&nbsp; · &nbsp;T to chat</span><span class="online">● 4 online</span></div><div class="messages"><div class="msg"><b>PixelPilot:</b> hey, joining?</div><div class="msg"><b>Nova:</b> yep, one sec</div><div class="msg mention"><b>Rex:</b> @Player let's meet at spawn</div><div class="msg"><b>PixelPilot:</b> got it!</div></div><div class="input">Type a message…</div></div><p class="mock-note">Illustrative interface preview — not a capture from the running app.</p></div>
+    <div data-lang="en" class="block">
+      <div class="kicker"><span class="dot"></span> ROBLOX · WINDOWS · ANDROID</div>
+      <h1>Play together.<br><em>Stay connected.</em></h1>
+      <p>A lightweight real-time chat overlay that follows your Roblox session. Meet friends in the same server, create private rooms, and keep the conversation close to the game.</p>
+      <div class="actions"><a class="btn primary" href="https://github.com/h1nchek/session-chat/releases/latest">↓ Get the latest release</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat">⌘ Explore source</a></div>
+      <div class="fine">Windows desktop client · Open source · AGPL-3.0-or-later</div>
+    </div>
+    <div data-lang="ru" class="block">
+      <div class="kicker"><span class="dot"></span> ROBLOX · WINDOWS · ANDROID</div>
+      <h1>Играйте вместе.<br><em>Оставайтесь на связи.</em></h1>
+      <p>Лёгкий чат-оверлей, который следует за игровой сессией Roblox. Общайтесь на одном сервере, создавайте приватные комнаты и не отвлекайтесь от игры.</p>
+      <div class="actions"><a class="btn primary" href="https://github.com/h1nchek/session-chat/releases/latest">↓ Последняя версия</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat">⌘ Исходный код</a></div>
+      <div class="fine">Клиент для Windows · Открытый исходный код · AGPL-3.0-or-later</div>
+    </div>
+    <div class="visual">
+      <div class="window">
+        <div class="windowbar"><span>◈ SESSIONCHAT&nbsp; / &nbsp;T TO CHAT</span><span class="status">● CONNECTED</span></div>
+        <div class="chat">
+          <div class="line"><b>PixelPilot</b> hey, joining?</div>
+          <div class="line"><b>Nova</b> yep, one sec</div>
+          <div class="line highlight"><b>Rex</b> @Player meet at spawn!</div>
+          <div class="line"><b>PixelPilot</b> got it ✦</div>
+        </div>
+        <div class="compose">Write a message…</div>
+      </div>
+      <div class="caption" data-lang="en">Illustrative UI preview — not a screenshot of the running app.</div>
+      <div class="caption" data-lang="ru">Иллюстративный макет — не скриншот работающего приложения.</div>
+    </div>
   </div>
-  <section id="features"><div class="wrap"><h2>Built for playing together</h2><p class="lead">SessionChat detects the active Roblox game session on Windows and opens the matching chat room automatically.</p><div class="cards">
-    <article class="card"><h3>Session-aware overlay</h3><p>Automatic PlaceId + JobId room detection, click-through overlay, nickname and opacity settings.</p></article>
-    <article class="card"><h3>Find your people</h3><p>Private rooms with temporary invite codes, cross-server global chat, mentions and soft notifications.</p></article>
-    <article class="card"><h3>Android companion</h3><p>Join a PC session with an invite code or discover an experience by name or PlaceId.</p></article>
-  </div></div></section>
-  <section id="security"><div class="wrap"><h2>Open source. Transparent by design.</h2><p class="lead">The source is public so users can inspect how the client and server work, build it themselves, and review changes.</p><div class="cards">
-    <article class="card security"><span class="license">AGPL-3.0-or-later</span><h3 style="margin-top:14px">Free and open source</h3><p>Distributed under the GNU Affero General Public License v3.0 or later. See the full license in the repository.</p></article>
-    <article class="card"><h3>Build transparency</h3><p>Tagged releases are built by GitHub Actions. Release assets include a SHA-256 checksum and build-provenance attestation.</p></article>
-    <article class="card"><h3>Honest security status</h3><p>The current server is an early prototype: it has no account authentication or transport encryption by itself. Do not expose it directly to the public internet. Use a secured WSS deployment with authentication and moderation before public use.</p></article>
-  </div><div class="actions"><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/LICENSE">Read AGPL-3.0 license ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat/releases">All releases ↗</a></div></div></section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="sectionhead" data-lang="en"><div class="eyebrow">WHY SESSIONCHAT</div><h2>Made to stay in the game.</h2><p>Useful chat tools, without pulling you away from the experience.</p></div>
+      <div class="sectionhead" data-lang="ru"><div class="eyebrow">ВОЗМОЖНОСТИ</div><h2>Общение прямо во время игры.</h2><p>Нужные инструменты чата, не отвлекающие от игрового процесса.</p></div>
+      <div class="grid" data-lang="en">
+        <article class="card"><div class="icon">⌖</div><h3>Session-aware overlay</h3><p>Automatically detects your Roblox PlaceId and JobId and opens the matching chat room.</p></article>
+        <article class="card"><div class="icon">◎</div><h3>Private rooms</h3><p>Create temporary invite rooms and bring friends in with a simple 4-digit code.</p></article>
+        <article class="card"><div class="icon">⇄</div><h3>Cross-server chat</h3><p>Use the global room to talk with players across servers in the same experience.</p></article>
+        <article class="card"><div class="icon">@</div><h3>Mentions</h3><p>Get highlighted when someone mentions your nickname in chat.</p></article>
+        <article class="card"><div class="icon">♫</div><h3>Soft notifications</h3><p>Optional incoming-message tone with a quick on/off switch.</p></article>
+        <article class="card"><div class="icon">▣</div><h3>Android companion</h3><p>Join a PC session by code or find an experience by name or PlaceId.</p></article>
+      </div>
+      <div class="grid" data-lang="ru">
+        <article class="card"><div class="icon">⌖</div><h3>Оверлей игровой сессии</h3><p>Автоматически определяет PlaceId и JobId Roblox и открывает нужную комнату.</p></article>
+        <article class="card"><div class="icon">◎</div><h3>Приватные комнаты</h3><p>Создавайте временные комнаты и приглашайте друзей по короткому 4-значному коду.</p></article>
+        <article class="card"><div class="icon">⇄</div><h3>Общий чат игры</h3><p>Общайтесь с игроками из разных серверов одного игрового режима.</p></article>
+        <article class="card"><div class="icon">@</div><h3>Упоминания</h3><p>Сообщения с вашим ником автоматически подсвечиваются.</p></article>
+        <article class="card"><div class="icon">♫</div><h3>Тихие уведомления</h3><p>Необязательный звук новых сообщений с быстрым переключателем.</p></article>
+        <article class="card"><div class="icon">▣</div><h3>Android-компаньон</h3><p>Подключайтесь к сессии ПК по коду или находите игру по названию и PlaceId.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="get-started">
+    <div class="wrap">
+      <div class="sectionhead" data-lang="en"><div class="eyebrow">GET STARTED</div><h2>Up and running in minutes.</h2><p>Download the Windows build or explore the source and build it yourself.</p></div>
+      <div class="sectionhead" data-lang="ru"><div class="eyebrow">НАЧАЛО РАБОТЫ</div><h2>Начните за пару минут.</h2><p>Скачайте сборку для Windows или изучите исходный код и соберите приложение самостоятельно.</p></div>
+      <div class="steps" data-lang="en">
+        <article class="step"><div class="num">01 / DOWNLOAD</div><h3>Get the app</h3><p>Open GitHub Releases and download the Windows executable when a release is available.</p></article>
+        <article class="step"><div class="num">02 / LAUNCH</div><h3>Choose a nickname</h3><p>Run SessionChat and enter the nickname you want to use in chat.</p></article>
+        <article class="step"><div class="num">03 / PLAY</div><h3>Join your session</h3><p>Start Roblox. SessionChat watches the local game log and joins the matching room.</p></article>
+      </div>
+      <div class="steps" data-lang="ru">
+        <article class="step"><div class="num">01 / СКАЧАТЬ</div><h3>Получите приложение</h3><p>Откройте GitHub Releases и скачайте EXE для Windows, когда будет опубликован релиз.</p></article>
+        <article class="step"><div class="num">02 / ЗАПУСТИТЬ</div><h3>Выберите ник</h3><p>Запустите SessionChat и укажите имя, которое будет отображаться в чате.</p></article>
+        <article class="step"><div class="num">03 / ИГРАТЬ</div><h3>Подключитесь к сессии</h3><p>Запустите Roblox. SessionChat отслеживает локальный лог игры и подключает нужную комнату.</p></article>
+      </div>
+      <div class="actions" data-lang="en"><a class="btn primary" href="https://github.com/h1nchek/session-chat/releases">View releases ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/README.md">Read the docs ↗</a></div>
+      <div class="actions" data-lang="ru"><a class="btn primary" href="https://github.com/h1nchek/session-chat/releases">Открыть релизы ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/README.ru.md">Читать документацию ↗</a></div>
+    </div>
+  </section>
+
+  <section id="security">
+    <div class="wrap">
+      <div class="sectionhead" data-lang="en"><div class="eyebrow">OPEN SOURCE & TRANSPARENCY</div><h2>Open code. Clear limitations.</h2><p>We want users to understand what the project does — and what still needs work.</p></div>
+      <div class="sectionhead" data-lang="ru"><div class="eyebrow">ОТКРЫТОСТЬ И ПРОЗРАЧНОСТЬ</div><h2>Открытый код. Честные ограничения.</h2><p>Важно понимать, что проект уже умеет и какие задачи безопасности ещё предстоит решить.</p></div>
+      <div class="securitygrid">
+        <article class="securitycard">
+          <span class="license">AGPL-3.0-OR-LATER</span>
+          <h3 data-lang="en">Free and open source</h3><h3 data-lang="ru">Свободный проект с открытым кодом</h3>
+          <p data-lang="en">SessionChat is distributed under the GNU Affero General Public License v3.0 or later. You can inspect, modify and share the source under the terms of the license.</p>
+          <p data-lang="ru">SessionChat распространяется по лицензии GNU Affero General Public License версии 3.0 или более поздней. Исходный код можно изучать, изменять и распространять на условиях лицензии.</p>
+          <div class="actions small"><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/LICENSE" data-lang="en">Read the license ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/LICENSE" data-lang="ru">Открыть лицензию ↗</a></div>
+        </article>
+        <article class="securitynote">
+          <h3 data-lang="en">Current security status</h3><h3 data-lang="ru">Текущее состояние безопасности</h3>
+          <p data-lang="en">This is an early prototype. The server currently has no account authentication, transport encryption or persistent history. Basic rate limits and scam filtering are not a substitute for proper security and moderation. Do not expose the server directly to the public internet.</p>
+          <p data-lang="ru">Это ранний прототип. Сейчас на сервере нет авторизации аккаунтов, шифрования соединения и постоянной истории. Базовые лимиты и фильтрация мошеннических сообщений не заменяют полноценную защиту и модерацию. Не открывайте сервер напрямую в публичный интернет.</p>
+          <div class="actions small"><a class="btn secondary" href="https://github.com/h1nchek/session-chat#security-and-privacy" data-lang="en">Security documentation ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat#безопасность-и-конфиденциальность" data-lang="ru">Документация по безопасности ↗</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
 </main>
-<footer><div class="wrap">SessionChat · Community project · <a href="https://github.com/h1nchek/session-chat">Source code</a> · Licensed under AGPL-3.0-or-later</div></footer>
-</body></html>
+<footer><div class="wrap foot"><div>© SessionChat · Community project · AGPL-3.0-or-later</div><div><a href="https://github.com/h1nchek/session-chat">GitHub</a>　·　<a href="https://github.com/h1nchek/session-chat/issues">Issues</a></div></div></footer>
+<script>
+  const toggle = document.getElementById("langToggle");
+  function setLanguage(lang) {
+    document.body.classList.toggle("ru", lang === "ru");
+    document.documentElement.lang = lang;
+    toggle.textContent = lang === "ru" ? "EN" : "RU";
+    try { localStorage.setItem("sessionchat-language", lang); } catch (_) {}
+  }
+  let initial = "en";
+  try { initial = localStorage.getItem("sessionchat-language") || (navigator.language.toLowerCase().startsWith("ru") ? "ru" : "en"); } catch (_) {}
+  setLanguage(initial);
+  toggle.addEventListener("click", () => setLanguage(document.body.classList.contains("ru") ? "en" : "ru"));
+</script>
+</body>
+</html>
