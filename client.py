@@ -297,7 +297,7 @@ class OverlayChat:
 
     def add_system_message(self, text):
         self.chat.configure(state="normal")
-        self.chat.insert("end", f"[SYSTEM] {text}\\n", "system")
+        self.chat.insert("end", f"[SYSTEM] {text}\n", "system")
         self.chat.configure(state="disabled")
         self.chat.see("end")
 
@@ -306,7 +306,7 @@ class OverlayChat:
             return
         self.chat.configure(state="normal")
         self.chat.insert("end", f"{nickname}: ", "nickname")
-        self.chat.insert("end", f"{text}\\n")
+        self.chat.insert("end", f"{text}\n")
         self.chat.configure(state="disabled")
         self.chat.see("end")
         self.messages.append((nickname, text))
