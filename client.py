@@ -10,6 +10,7 @@ import re
 import threading
 import time
 import tkinter as tk
+import winsound
 import customtkinter as ctk
 from pathlib import Path
 from tkinter import simpledialog
@@ -261,6 +262,7 @@ class OverlayChat:
         self.drag_origin = None
         self.settings_visible = False
         self.global_enabled = False
+        self.sound_enabled = True
 
         # Compact, low-contrast HUD. The whole window stays click-through
         # until the player opens the composer with T.
@@ -289,6 +291,13 @@ class OverlayChat:
             command=self.toggle_settings
         )
         self.gear_button.pack(side="right", padx=(0, 5), pady=3)
+        self.sound_button = ctk.CTkButton(
+            header, text="♪ ON", width=48, height=28,
+            corner_radius=9, fg_color="transparent",
+            hover_color="#30394A", text_color="#AAB8CC",
+            font=("Segoe UI", 9, "bold"), command=self.toggle_sound
+        )
+        self.sound_button.pack(side="right", padx=(0, 3), pady=3)
         self.room_badge = ctk.CTkLabel(
             header, text="WAITING", text_color=MUTED_FG,
             font=("Segoe UI", 8, "bold")
@@ -382,6 +391,10 @@ class OverlayChat:
             font=("Segoe UI", 9, "bold")
         )
         self.chat._textbox.tag_configure("body", foreground="#D7DEEA")
+        self.chat._textbox.tag_configure(
+            "mention", foreground="#FFF1B8", background="#39452F",
+            font=("Segoe UI", 9, "bold")
+        )
 
         self.input_frame = ctk.CTkFrame(
             shell, fg_color=SURFACE_BG, corner_radius=11,
@@ -445,6 +458,21 @@ class OverlayChat:
             self.settings_frame.pack(fill="x", padx=8, pady=(0, 6),
                                      before=self.chat)
             self.settings_visible = True
+
+    def toggle_sound(self):
+        self.sound_enabled = not self.sound_enabled
+        self.sound_button.configure(
+            text="♪ ON" if self.sound_enabled else "♪ OFF",
+            text_color="#AAB8CC" if self.sound_enabled else MUTED_FG
+        )
+
+    def play_notification(self):
+        if not self.sound_enabled:
+            return
+        try:
+            winsound.Beep(660, 85)
+        except RuntimeError:
+            pass
 
     def change_opacity(self, value):
         self.window_alpha = max(0.45, min(1.0, float(value) / 100))
@@ -570,12 +598,23 @@ class OverlayChat:
     def add_chat_message(self, nickname, text):
         if nickname.casefold() in self.muted_users:
             return
+        is_mention = bool(re.search(
+            rf"(?<![\\w])@{re.escape(self.nickname)}(?![\\w])",
+            text, re.IGNORECASE
+        ))
         self.chat.configure(state="normal")
+        line_start = self.chat.index("end-1c")
         self.chat.insert("end", f"{nickname}: ", "nickname")
-        self.chat.insert("end", f"{text}\n")
+        self.chat.insert("end", text)
+        if is_mention:
+            line_end = self.chat.index("end-1c")
+            self.chat.tag_add("mention", line_start, line_end)
+        self.chat.insert("end", "\\n")
         self.chat.configure(state="disabled")
         self.chat.see("end")
         self.messages.append((nickname, text))
+        if nickname.casefold() != self.nickname.casefold():
+            self.play_notification()
         if len(self.messages) > MAX_MESSAGES:
             self.messages.pop(0)
             self.chat.configure(state="normal")
