@@ -18,7 +18,8 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 
 - Python 3.10 or newer
 - Windows for the overlay client
-- `websockets`\n- `customtkinter`
+- `websockets`
+- `customtkinter`
 
 Install the dependency:
 
