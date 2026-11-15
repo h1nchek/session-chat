@@ -68,6 +68,19 @@ python client.py
 
 Enter a nickname when prompted. When Roblox writes a matching session line to its log, the client automatically joins the corresponding room.
 
+## Download the Windows app
+
+You do not need to install Python or run terminal commands to use the desktop client. Open the repository's **Releases** page and download `SessionChat.exe` from the latest release.
+
+When a version tag matching `v*` is published, GitHub Actions automatically builds the Windows executable from the tagged source code and attaches these files to that GitHub Release:
+
+- `SessionChat.exe` — standalone Windows application.
+- `SHA256SUMS.txt` — SHA-256 checksum for checking that the downloaded file was not changed.
+
+The workflow also publishes a GitHub build-provenance attestation for the executable. This lets users verify which repository revision and GitHub Actions workflow produced the binary. The workflow's build output is also available as a temporary Actions artifact for manually started builds.
+
+**Security note:** an automated build from public source improves transparency, but it does not prove that software is 100% virus-free. Users can inspect the source, verify the checksum, and verify the provenance attestation; antivirus tools may still produce false positives, and the build environment and dependencies remain part of the software supply chain.
+
 ## Chat commands
 
 | Key / command | Action |
