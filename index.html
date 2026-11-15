@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d18">
+  <meta name="description" content="SessionChat — a lightweight real-time Roblox session overlay chat for Windows, with an Android companion app.">
+  <title>SessionChat — Roblox session chat</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090d18;--panel:#111a2b;--line:#26344d;--muted:#a6b4ca;--text:#f3f6fc;--accent:#8b9cff;--cyan:#65dfd0}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#1b2850 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+    a{color:inherit}.wrap{width:min(1080px,calc(100% - 40px));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff14}.brand{font-weight:800;letter-spacing:.3px;font-size:20px}.brand span{color:var(--cyan)}.nav a{color:var(--muted);text-decoration:none;margin-left:22px;font-size:14px}
+    .hero{padding:82px 0 66px;display:grid;grid-template-columns:1.1fr .9fr;gap:54px;align-items:center}.eyebrow{color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:2px;font-size:12px}.hero h1{font-size:clamp(42px,6vw,68px);line-height:1.04;letter-spacing:-2.5px;margin:15px 0 20px}.hero p{color:var(--muted);font-size:18px;max-width:580px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 19px;border-radius:12px;text-decoration:none;font-weight:750;background:linear-gradient(120deg,#9aa8ff,#70e1d4);color:#07101b}.btn.secondary{background:#172239;color:var(--text);border:1px solid var(--line)}
+    .mock-wrap{padding:22px;background:linear-gradient(145deg,#182644,#0e1525);border:1px solid #354565;border-radius:22px;box-shadow:0 30px 90px #0008}.mock{background:#0b1220;border:1px solid #405071;border-radius:15px;overflow:hidden;box-shadow:0 12px 30px #0008;font-size:13px}.bar{padding:12px 14px;background:#18243b;display:flex;justify-content:space-between;font-weight:700}.online{color:var(--cyan);font-size:11px}.messages{padding:18px;min-height:176px}.msg{margin:8px 0;color:#dbe4f4}.msg b{color:#aab8ff}.msg.mention{background:#263253;border-left:3px solid var(--cyan);padding:7px 9px;border-radius:5px}.input{margin:0 13px 13px;border:1px solid #405071;border-radius:8px;padding:9px 11px;color:#8190a9}.mock-note{color:#94a5c0;font-size:11px;text-align:center;margin:12px 0 0}
+    section{padding:56px 0;border-top:1px solid #ffffff12}h2{font-size:32px;letter-spacing:-.8px;margin:0 0 12px}.lead{color:var(--muted);max-width:720px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}.card{padding:22px;background:#111a2b;border:1px solid var(--line);border-radius:16px}.card h3{margin:0 0 8px}.card p{margin:0;color:var(--muted);font-size:14px}.security{border-color:#41615e}.license{display:inline-block;padding:5px 9px;border:1px solid #4c7771;border-radius:8px;color:var(--cyan);font-weight:700;font-size:13px}
+    footer{padding:28px 0 46px;color:var(--muted);font-size:13px;border-top:1px solid #ffffff12}footer a{color:var(--text)}
+    @media(max-width:760px){.hero{grid-template-columns:1fr;padding:58px 0 42px;gap:32px}.cards{grid-template-columns:1fr}.nav a{margin-left:12px}.nav .links a:first-child{display:none}}
+  </style>
+</head>
+<body>
+<header class="wrap nav"><a class="brand" href="#" style="text-decoration:none">Session<span>Chat</span></a><div class="links"><a href="#features">Features</a><a href="#security">Security</a><a href="https://github.com/h1nchek/session-chat">GitHub ↗</a></div></header>
+<main>
+  <div class="wrap hero">
+    <div><div class="eyebrow">Roblox · Windows · Android</div><h1>Your game.<br>One conversation.</h1><p>A lightweight real-time overlay chat that follows your Roblox session, connects friends across servers, and includes an Android companion app.</p><div class="actions"><a class="btn" href="https://github.com/h1nchek/session-chat/releases/latest/download/SessionChat.exe">↓ Download latest version</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat">View source ↗</a></div></div>
+    <div class="mock-wrap"><div class="mock"><div class="bar"><span>SessionChat&nbsp; · &nbsp;T to chat</span><span class="online">● 4 online</span></div><div class="messages"><div class="msg"><b>PixelPilot:</b> hey, joining?</div><div class="msg"><b>Nova:</b> yep, one sec</div><div class="msg mention"><b>Rex:</b> @Player let's meet at spawn</div><div class="msg"><b>PixelPilot:</b> got it!</div></div><div class="input">Type a message…</div></div><p class="mock-note">Illustrative interface preview — not a capture from the running app.</p></div>
+  </div>
+  <section id="features"><div class="wrap"><h2>Built for playing together</h2><p class="lead">SessionChat detects the active Roblox game session on Windows and opens the matching chat room automatically.</p><div class="cards">
+    <article class="card"><h3>Session-aware overlay</h3><p>Automatic PlaceId + JobId room detection, click-through overlay, nickname and opacity settings.</p></article>
+    <article class="card"><h3>Find your people</h3><p>Private rooms with temporary invite codes, cross-server global chat, mentions and soft notifications.</p></article>
+    <article class="card"><h3>Android companion</h3><p>Join a PC session with an invite code or discover an experience by name or PlaceId.</p></article>
+  </div></div></section>
+  <section id="security"><div class="wrap"><h2>Open source. Transparent by design.</h2><p class="lead">The source is public so users can inspect how the client and server work, build it themselves, and review changes.</p><div class="cards">
+    <article class="card security"><span class="license">AGPL-3.0-or-later</span><h3 style="margin-top:14px">Free and open source</h3><p>Distributed under the GNU Affero General Public License v3.0 or later. See the full license in the repository.</p></article>
+    <article class="card"><h3>Build transparency</h3><p>Tagged releases are built by GitHub Actions. Release assets include a SHA-256 checksum and build-provenance attestation.</p></article>
+    <article class="card"><h3>Honest security status</h3><p>The current server is an early prototype: it has no account authentication or transport encryption by itself. Do not expose it directly to the public internet. Use a secured WSS deployment with authentication and moderation before public use.</p></article>
+  </div><div class="actions"><a class="btn secondary" href="https://github.com/h1nchek/session-chat/blob/main/LICENSE">Read AGPL-3.0 license ↗</a><a class="btn secondary" href="https://github.com/h1nchek/session-chat/releases">All releases ↗</a></div></div></section>
+</main>
+<footer><div class="wrap">SessionChat · Community project · <a href="https://github.com/h1nchek/session-chat">Source code</a> · Licensed under AGPL-3.0-or-later</div></footer>
+</body></html>
