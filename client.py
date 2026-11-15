@@ -10,6 +10,7 @@ import re
 import threading
 import time
 import tkinter as tk
+import customtkinter as ctk
 from pathlib import Path
 from tkinter import simpledialog
 
@@ -169,12 +170,14 @@ class ChatConnection(threading.Thread):
 class OverlayChat:
     def __init__(self, nickname):
         self.nickname = nickname
-        self.root = tk.Tk()
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+        self.root = ctk.CTk()
         self.root.title("SessionChat")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", WINDOW_ALPHA)
-        self.root.configure(bg=PANEL_BG)
+        self.root.configure(fg_color=PANEL_BG)
         self.root.geometry("360x250+30+100")
         self.root.resizable(False, False)
 
@@ -186,73 +189,79 @@ class OverlayChat:
 
         # Compact, low-contrast HUD. The whole window stays click-through
         # until the player opens the composer with T.
-        shell = tk.Frame(self.root, bg=PANEL_BG, highlightthickness=1,
-                         highlightbackground="#30394A")
-        shell.pack(fill="both", expand=True)
+        shell = ctk.CTkFrame(
+            self.root, fg_color=PANEL_BG, corner_radius=16,
+            border_width=1, border_color="#30394A"
+        )
+        shell.pack(fill="both", expand=True, padx=1, pady=1)
 
-        header = tk.Frame(shell, bg=SURFACE_BG, height=34)
+        header = ctk.CTkFrame(
+            shell, fg_color=SURFACE_BG, corner_radius=12, height=36
+        )
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        brand = tk.Label(
-            header, text="●  SESSIONCHAT", bg=SURFACE_BG, fg="#DCE7F7",
-            font=("Segoe UI", 9, "bold"), anchor="w", padx=11
+        brand = ctk.CTkLabel(
+            header, text="●  SESSIONCHAT", text_color="#DCE7F7",
+            font=("Segoe UI", 10, "bold"), anchor="w"
         )
         brand.pack(side="left", fill="y")
-        self.room_badge = tk.Label(
-            header, text="WAITING", bg=SURFACE_BG, fg=MUTED_FG,
-            font=("Segoe UI", 7, "bold"), padx=9
+        self.room_badge = ctk.CTkLabel(
+            header, text="WAITING", text_color=MUTED_FG,
+            font=("Segoe UI", 8, "bold")
         )
         self.room_badge.pack(side="right", fill="y")
 
-        status_row = tk.Frame(shell, bg=PANEL_BG)
+        status_row = ctk.CTkFrame(shell, fg_color="transparent")
         status_row.pack(fill="x", padx=11, pady=(8, 3))
-        self.status = tk.Label(
+        self.status = ctk.CTkLabel(
             status_row, text="Looking for Roblox session…",
-            bg=PANEL_BG, fg=MUTED_FG, font=("Segoe UI", 8),
-            anchor="w"
+            text_color=MUTED_FG, font=("Segoe UI", 9), anchor="w"
         )
         self.status.pack(side="left", fill="x", expand=True)
 
-        self.chat = tk.Text(
-            shell, bg=PANEL_BG, fg="#D7DEEA",
-            font=("Segoe UI", 9), relief="flat", wrap="word",
-            state="disabled", height=8, borderwidth=0,
-            padx=8, pady=5, spacing1=2, spacing3=3,
-            selectbackground="#34445C", highlightthickness=0
+        self.chat = ctk.CTkTextbox(
+            shell, fg_color="#171D27", text_color="#D7DEEA",
+            font=("Segoe UI", 9), corner_radius=11,
+            border_width=0, wrap="word", activate_scrollbars=False
         )
-        self.chat.pack(fill="both", expand=True, padx=5, pady=(0, 5))
-        self.chat.tag_configure("system", foreground="#778397",
-                                font=("Segoe UI", 8, "italic"))
-        self.chat.tag_configure("nickname", foreground=ACCENT,
-                                font=("Segoe UI", 9, "bold"))
-        self.chat.tag_configure("body", foreground="#D7DEEA")
+        self.chat.pack(fill="both", expand=True, padx=8, pady=(0, 7))
+        self.chat._textbox.tag_configure(
+            "system", foreground="#778397",
+            font=("Segoe UI", 8, "italic")
+        )
+        self.chat._textbox.tag_configure(
+            "nickname", foreground=ACCENT,
+            font=("Segoe UI", 9, "bold")
+        )
+        self.chat._textbox.tag_configure("body", foreground="#D7DEEA")
 
-        self.input_frame = tk.Frame(shell, bg=SURFACE_BG,
-                                    highlightthickness=1,
-                                    highlightbackground="#34445C")
-        self.entry = tk.Entry(
-            self.input_frame, bg=SURFACE_BG, fg="#F3F6FC",
-            insertbackground="#F3F6FC", relief="flat",
-            font=("Segoe UI", 9), borderwidth=0
+        self.input_frame = ctk.CTkFrame(
+            shell, fg_color=SURFACE_BG, corner_radius=11,
+            border_width=1, border_color="#34445C"
+        )
+        self.entry = ctk.CTkEntry(
+            self.input_frame, fg_color=SURFACE_BG,
+            text_color="#F3F6FC", placeholder_text="Write a message…",
+            border_width=0, corner_radius=9, height=34,
+            font=("Segoe UI", 10)
         )
         self.entry.pack(fill="x", padx=10, pady=9)
         self.entry.bind("<Return>", self.on_enter)
         self.entry.bind("<Escape>", self.on_escape)
 
-        footer = tk.Frame(shell, bg=SURFACE_BG, height=25)
+        footer = ctk.CTkFrame(shell, fg_color=SURFACE_BG,
+                              corner_radius=10, height=27)
         footer.pack(fill="x", side="bottom")
         footer.pack_propagate(False)
-        self.footer = tk.Label(
+        self.footer = ctk.CTkLabel(
             footer, text="T  open chat     /mute name",
-            bg=SURFACE_BG, fg="#78869A", font=("Segoe UI", 7),
-            anchor="w", padx=10
+            text_color="#78869A", font=("Segoe UI", 8), anchor="w"
         )
         self.footer.pack(side="left", fill="y")
-        self.hint = tk.Label(
+        self.hint = ctk.CTkLabel(
             footer, text="ESC  close",
-            bg=SURFACE_BG, fg="#78869A", font=("Segoe UI", 7),
-            anchor="e", padx=10
+            text_color="#78869A", font=("Segoe UI", 8), anchor="e"
         )
         self.hint.pack(side="right", fill="y")
 
