@@ -8,7 +8,7 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 
 - Detects the latest Roblox log in `%LOCALAPPDATA%\Roblox\logs`.
 - Extracts the most recent `JobId` and `PlaceId` and joins room `PlaceId_JobId`.
-- Windows Tkinter overlay with transparency and click-through mode.
+- Windows CustomTkinter overlay with rounded corners, transparency, and click-through mode.
 - Press **T** to open the chat input; **Enter** sends and **Escape** closes it.
 - Local `/mute Nick` command.
 - WebSocket server routes messages by room and limits each client to one message per second.
@@ -18,12 +18,12 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 
 - Python 3.10 or newer
 - Windows for the overlay client
-- `websockets`
+- `websockets`\n- `customtkinter`
 
 Install the dependency:
 
 ```bash
-python -m pip install websockets
+python -m pip install websockets customtkinter
 ```
 
 ## Run the server
