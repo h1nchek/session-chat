@@ -177,7 +177,7 @@ class OverlayChat:
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", WINDOW_ALPHA)
-        self.root.configure(fg_color=PANEL_BG)
+        self.root.configure(fg_color="#0D1118")
         self.root.geometry("360x250+30+100")
         self.root.resizable(False, False)
 
@@ -193,7 +193,7 @@ class OverlayChat:
             self.root, fg_color=PANEL_BG, corner_radius=16,
             border_width=1, border_color="#30394A"
         )
-        shell.pack(fill="both", expand=True, padx=1, pady=1)
+        shell.pack(fill="both", expand=True, padx=2, pady=2)
 
         header = ctk.CTkFrame(
             shell, fg_color=SURFACE_BG, corner_radius=12, height=36
