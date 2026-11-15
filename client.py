@@ -250,7 +250,7 @@ class OverlayChat:
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", WINDOW_ALPHA)
         self.root.configure(fg_color="#0D1118")
-        self.root.geometry("360x250+30+100")
+        self.root.geometry("440x250+30+100")
         self.root.resizable(False, False)
 
         self.input_active = False
@@ -302,7 +302,12 @@ class OverlayChat:
             header, text="WAITING", text_color=MUTED_FG,
             font=("Segoe UI", 8, "bold")
         )
-        self.room_badge.pack(side="right", fill="y")
+        self.room_badge.pack(side="right", fill="y", padx=(0, 7))
+        self.online_label = ctk.CTkLabel(
+            header, text="Online: —", text_color="#AAB8CC",
+            font=("Segoe UI", 8), anchor="e"
+        )
+        self.online_label.pack(side="right", fill="y", padx=(0, 7))
 
         status_row = ctk.CTkFrame(shell, fg_color="transparent")
         status_row.pack(fill="x", padx=11, pady=(8, 3))
@@ -643,6 +648,12 @@ class OverlayChat:
                 self.room_badge.configure(
                     text="ONLINE" if message.startswith("Connected") else "CONNECTING",
                     fg="#8FD6B0" if message.startswith("Connected") else "#D9B978"
+                )
+            elif kind == "online_counts":
+                server_count = max(0, int(packet.get("server", 0)))
+                game_count = max(0, int(packet.get("game", 0)))
+                self.online_label.configure(
+                    text=f"Online: {server_count} на сервере / {game_count} в игре"
                 )
             elif kind == "room_code":
                 code = str(packet.get("code", ""))[:4]
