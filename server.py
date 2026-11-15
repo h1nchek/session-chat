@@ -136,7 +136,7 @@ async def handler(ws):
         # Desktop starts in its exact JobId room. /global explicitly adds
         # the shared PlaceId room. A private invite remains private.
         game_session_id = ""
-        if join.get("share_code") and "_" in room_id:
+        if "_" in room_id:
             candidate_place_id = room_id.split("_", 1)[0]
             if candidate_place_id.isdigit():
                 game_place_id = candidate_place_id
