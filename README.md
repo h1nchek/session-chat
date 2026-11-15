@@ -80,8 +80,9 @@ The client does not need to identify whether Roblox was started by the official 
 A native Android companion app is in `android/`. It currently supports:
 
 - Joining a PC player's exact Roblox server with the temporary **4-digit room code** shown by the desktop overlay (in its footer and system chat).
+- Joining a friend's exact PC session with a 4-digit invite code.
 - Searching Roblox experiences by name, selecting a result, and joining the shared chat for its `PlaceId`.
-- Joining directly by numeric `PlaceId`.
+- Pasting a numeric `PlaceId` into the same game search field to join directly.
 - Setting a nickname, reading chat, and sending messages.
 
 The PlaceId chat is shared across all running Roblox servers for that experience. The 4-digit code instead joins the exact desktop session. Codes are temporary, held in server memory, and expire when the desktop session that published the code disconnects or the server restarts.
