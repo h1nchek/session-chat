@@ -40,7 +40,6 @@ private fun SessionChatApp() {
     var server by remember { mutableStateOf("ws://10.0.2.2:8765") }
     var nickname by remember { mutableStateOf("Player") }
     var code by remember { mutableStateOf("") }
-    var placeId by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("Choose a room to join") }
     var activeRoom by remember { mutableStateOf("") }
@@ -114,48 +113,59 @@ private fun SessionChatApp() {
                 }
 
                 HorizontalDivider(color = Color(0xFF30394A))
-                Text("Find a game by name or PlaceId", color = Color.White, fontWeight = FontWeight.SemiBold)
-                OutlinedTextField(query, { query = it }, label = { Text("Game name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Text("Join a game's shared chat", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Enter a game name to search, or paste its numeric PlaceId to join directly.",
+                    color = Color(0xFF9AA9BD),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                OutlinedTextField(
+                    query,
+                    { query = it.take(100); results.clear() },
+                    label = { Text("Game name or PlaceId") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Button(
                     onClick = {
-                        scope.launch {
-                            status = "Searching Roblox…"
-                            try {
-                                val found = withContext(Dispatchers.IO) {
-                                    val encoded = URLEncoder.encode(query.trim(), "UTF-8")
-                                    val response = URL("https://games.roblox.com/v1/games/search?keyword=" + encoded + "&limit=10").readText()
-                                    val data = JSONObject(response).optJSONArray("data")
-                                    buildList {
-                                        if (data != null) for (i in 0 until data.length()) {
-                                            val item = data.getJSONObject(i)
-                                            val id = item.optLong("rootPlaceId")
-                                            if (id > 0) add(GameResult(item.optString("name"), id.toString()))
+                        val term = query.trim()
+                        if (term.all(Char::isDigit)) {
+                            joinPlace(term)
+                        } else {
+                            scope.launch {
+                                status = "Searching Roblox…"
+                                try {
+                                    val found = withContext(Dispatchers.IO) {
+                                        val encoded = URLEncoder.encode(term, "UTF-8")
+                                        val response = URL("https://games.roblox.com/v1/games/search?keyword=" + encoded + "&limit=10").readText()
+                                        val data = JSONObject(response).optJSONArray("data")
+                                        buildList {
+                                            if (data != null) for (i in 0 until data.length()) {
+                                                val item = data.getJSONObject(i)
+                                                val id = item.optLong("rootPlaceId")
+                                                if (id > 0) add(GameResult(item.optString("name"), id.toString()))
+                                            }
                                         }
                                     }
+                                    results.clear()
+                                    results.addAll(found)
+                                    status = if (found.isEmpty()) "No games found" else "Tap a game below to join"
+                                } catch (e: Exception) {
+                                    status = "Search failed: " + (e.message ?: "network error")
                                 }
-                                results.clear()
-                                results.addAll(found)
-                                status = if (found.isEmpty()) "No games found" else "Tap a result to join its shared chat"
-                            } catch (e: Exception) { status = "Search failed: " + (e.message ?: "network error") }
+                            }
                         }
                     },
-                    enabled = query.isNotBlank(), modifier = Modifier.fillMaxWidth()
-                ) { Text("Search Roblox games") }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(placeId, { placeId = it.filter(Char::isDigit) },
-                        label = { Text("PlaceId") }, singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f))
-                    Button(onClick = { joinPlace(placeId) }, enabled = placeId.isNotBlank(),
-                        modifier = Modifier.padding(top = 7.dp)) { Text("Join") }
-                }
+                    enabled = query.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(if (query.trim().all(Char::isDigit)) "Join by PlaceId" else "Search games") }
 
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(results) { game ->
                         Surface(color = Color(0xFF1B2330), shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.fillMaxWidth().clickable {
-                                placeId = game.placeId
+                                query = game.placeId
                                 joinPlace(game.placeId)
                             }) {
                             Column(Modifier.padding(10.dp)) {
