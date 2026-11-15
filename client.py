@@ -599,7 +599,7 @@ class OverlayChat:
         if nickname.casefold() in self.muted_users:
             return
         is_mention = bool(re.search(
-            rf"(?<![\\w])@{re.escape(self.nickname)}(?![\\w])",
+            rf"(?<![\w])@{re.escape(self.nickname)}(?![\w])",
             text, re.IGNORECASE
         ))
         self.chat.configure(state="normal")
@@ -609,7 +609,7 @@ class OverlayChat:
         if is_mention:
             line_end = self.chat.index("end-1c")
             self.chat.tag_add("mention", line_start, line_end)
-        self.chat.insert("end", "\\n")
+        self.chat.insert("end", "\n")
         self.chat.configure(state="disabled")
         self.chat.see("end")
         self.messages.append((nickname, text))
