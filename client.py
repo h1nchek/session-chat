@@ -145,7 +145,10 @@ class ChatConnection(threading.Thread):
 
     def send_message(self, text):
         if text.strip():
-            self.outgoing.put(text.strip()[:200])
+            self.outgoing.put({"type": "message", "text": text.strip()[:200]})
+
+    def set_global(self, enabled):
+        self.outgoing.put({"type": "global", "enabled": bool(enabled)})
 
     async def receive(self, websocket):
         async for raw in websocket:
@@ -210,9 +213,10 @@ class ChatConnection(threading.Thread):
                             except queue.Empty:
                                 text = None
                             if text is not None:
-                                await ws.send(json.dumps({
+                                packet = text if isinstance(text, dict) else {
                                     "type": "message", "text": text
-                                }, ensure_ascii=False))
+                                }
+                                await ws.send(json.dumps(packet, ensure_ascii=False))
                             await asyncio.sleep(0.05)
                     finally:
                         receiver.cancel()
@@ -256,6 +260,7 @@ class OverlayChat:
         self.window_alpha = WINDOW_ALPHA
         self.drag_origin = None
         self.settings_visible = False
+        self.global_enabled = False
 
         # Compact, low-contrast HUD. The whole window stays click-through
         # until the player opens the composer with T.
@@ -532,7 +537,17 @@ class OverlayChat:
             return "break"
         text = self.entry.get().strip()
         self.entry.delete(0, "end")
-        if text.lower().startswith("/mute "):
+        if text.casefold() in ("/global", "/global on"):
+            self.global_enabled = True
+            self.connection.set_global(True)
+            self.add_system_message("Global chat enabled")
+            self.room_badge.configure(text="GLOBAL")
+        elif text.casefold() == "/global off":
+            self.global_enabled = False
+            self.connection.set_global(False)
+            self.add_system_message("Global chat disabled")
+            self.room_badge.configure(text="LOCAL")
+        elif text.lower().startswith("/mute "):
             target = text[6:].strip()
             if target:
                 self.muted_users.add(target.casefold())
