@@ -162,9 +162,16 @@ class ChatConnection(threading.Thread):
             if not room and not self.join_request:
                 await asyncio.sleep(0.25)
                 continue
+            if self.reconnect_requested.is_set():
+                self.reconnect_requested.clear()
+            target = (
+                "invite room" if self.join_request and "room_code" in self.join_request
+                else "new private room" if self.join_request
+                else room
+            )
             try:
                 self.incoming.put({
-                    "type": "status", "message": f"Connecting to {room}..."
+                    "type": "status", "message": f"Connecting to {target}..."
                 })
                 async with websockets.connect(
                     SERVER_URL,
@@ -580,8 +587,8 @@ class OverlayChat:
                 message = str(packet.get("message", ""))
                 self.status.configure(text=message)
                 self.room_badge.configure(
-                    text="ONLINE" if message.startswith("Connected:") else "CONNECTING",
-                    fg="#8FD6B0" if message.startswith("Connected:") else "#D9B978"
+                    text="ONLINE" if message.startswith("Connected") else "CONNECTING",
+                    fg="#8FD6B0" if message.startswith("Connected") else "#D9B978"
                 )
             elif kind == "room_code":
                 code = str(packet.get("code", ""))[:4]
