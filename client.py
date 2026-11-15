@@ -160,9 +160,12 @@ class ChatConnection(threading.Thread):
                     ping_timeout=20,
                     max_size=4096,
                 ) as ws:
+                    place_id = room.split("_", 1)[0] if "_" in room else ""
                     await ws.send(json.dumps({
                         "type": "join",
                         "room_id": room,
+                        "place_id": place_id,
+                        "share_code": bool(place_id.isdigit()),
                         "nickname": self.nickname,
                     }, ensure_ascii=False))
                     self.incoming.put({
@@ -532,6 +535,10 @@ class OverlayChat:
                     text="ONLINE" if message.startswith("Connected:") else "CONNECTING",
                     fg="#8FD6B0" if message.startswith("Connected:") else "#D9B978"
                 )
+            elif kind == "room_code":
+                code = str(packet.get("code", ""))[:4]
+                self.add_system_message(f"Mobile invite code: {code}")
+                self.footer.configure(text=f"ROOM CODE  {code}     T  open chat")
             elif kind == "error":
                 self.add_system_message(str(packet.get("message", "")))
         self.root.after(100, self.process_messages)
