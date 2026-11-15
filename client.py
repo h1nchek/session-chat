@@ -119,11 +119,25 @@ class ChatConnection(threading.Thread):
         self.incoming = incoming
         self.outgoing = queue.Queue()
         self.room_id = None
+        self.join_request = None
+        self.manual_join = False
         self.running = True
         self.reconnect_requested = threading.Event()
 
     def change_room(self, room_id):
+        if self.manual_join:
+            return
         self.room_id = room_id
+
+    def join_invite_code(self, code):
+        self.manual_join = True
+        self.join_request = {"room_code": code}
+        self.reconnect_requested.set()
+
+    def create_private_room(self):
+        self.manual_join = True
+        self.join_request = {"create_private": True}
+        self.reconnect_requested.set()
 
     def set_nickname(self, nickname):
         self.nickname = nickname
@@ -145,7 +159,7 @@ class ChatConnection(threading.Thread):
     async def main_loop(self):
         while self.running:
             room = self.room_id
-            if not room:
+            if not room and not self.join_request:
                 await asyncio.sleep(0.25)
                 continue
             try:
@@ -160,14 +174,17 @@ class ChatConnection(threading.Thread):
                     ping_timeout=20,
                     max_size=4096,
                 ) as ws:
-                    place_id = room.split("_", 1)[0] if "_" in room else ""
-                    await ws.send(json.dumps({
+                    place_id = room.split("_", 1)[0] if room and "_" in room else ""
+                    join_packet = {
                         "type": "join",
-                        "room_id": room,
+                        "room_id": room or "",
                         "place_id": place_id,
                         "share_code": bool(place_id.isdigit()),
                         "nickname": self.nickname,
-                    }, ensure_ascii=False))
+                    }
+                    if self.join_request:
+                        join_packet.update(self.join_request)
+                    await ws.send(json.dumps(join_packet, ensure_ascii=False))
                     self.incoming.put({
                         "type": "status", "message": f"Connected: {room}"
                     })
@@ -296,6 +313,25 @@ class OverlayChat:
             command=self.save_nickname
         )
         self.save_nickname_button.pack(fill="x", padx=9, pady=(2, 6))
+
+        self.private_code_entry = ctk.CTkEntry(
+            self.settings_frame, height=29, corner_radius=8,
+            placeholder_text="4-digit room code", font=("Segoe UI", 9)
+        )
+        self.private_code_entry.pack(fill="x", padx=9, pady=(1, 4))
+        room_actions = ctk.CTkFrame(self.settings_frame, fg_color="transparent")
+        room_actions.pack(fill="x", padx=9, pady=(0, 6))
+        self.join_code_button = ctk.CTkButton(
+            room_actions, text="Join by code", height=27, corner_radius=8,
+            font=("Segoe UI", 8, "bold"), command=self.join_room_by_code
+        )
+        self.join_code_button.pack(side="left", fill="x", expand=True, padx=(0, 3))
+        self.create_room_button = ctk.CTkButton(
+            room_actions, text="Create private", height=27, corner_radius=8,
+            fg_color="#34445C", hover_color="#405675",
+            font=("Segoe UI", 8, "bold"), command=self.create_private_room
+        )
+        self.create_room_button.pack(side="left", fill="x", expand=True, padx=(3, 0))
         self.done_settings_button = ctk.CTkButton(
             self.settings_frame, text="Done  ·  return to game",
             height=25, corner_radius=8, fg_color="#30394A",
@@ -413,6 +449,18 @@ class OverlayChat:
         self.nickname_entry.delete(0, "end")
         self.nickname_entry.insert(0, nickname)
         self.add_system_message(f"Nickname changed to {nickname}")
+
+    def join_room_by_code(self):
+        code = self.private_code_entry.get().strip()
+        if len(code) != 4 or not code.isdigit():
+            self.add_system_message("Enter a valid 4-digit room code")
+            return
+        self.connection.join_invite_code(code)
+        self.add_system_message(f"Joining private room with code {code}…")
+
+    def create_private_room(self):
+        self.connection.create_private_room()
+        self.add_system_message("Creating a private room…")
 
     def start_drag(self, event):
         if not self.input_active:
@@ -537,7 +585,7 @@ class OverlayChat:
                 )
             elif kind == "room_code":
                 code = str(packet.get("code", ""))[:4]
-                self.add_system_message(f"Mobile invite code: {code}")
+                self.add_system_message(f"Room invite code: {code}  · share with friends")
                 self.footer.configure(text=f"ROOM CODE  {code}     T  open chat")
             elif kind == "error":
                 self.add_system_message(str(packet.get("message", "")))
