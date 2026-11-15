@@ -21,7 +21,11 @@ LOG_PATTERN = re.compile(
     r"Joining game '([a-f0-9-]{36})' place (\d+)", re.IGNORECASE
 )
 POLL_INTERVAL = 2.0
-WINDOW_ALPHA = 0.88
+WINDOW_ALPHA = 0.90
+PANEL_BG = "#151922"
+SURFACE_BG = "#1D2430"
+MUTED_FG = "#8490A3"
+ACCENT = "#83B7FF"
 MAX_MESSAGES = 100
 
 if os.name != "nt":
@@ -170,8 +174,8 @@ class OverlayChat:
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", WINDOW_ALPHA)
-        self.root.configure(bg="#171717")
-        self.root.geometry("440x300+30+100")
+        self.root.configure(bg=PANEL_BG)
+        self.root.geometry("360x250+30+100")
         self.root.resizable(False, False)
 
         self.input_active = False
@@ -180,44 +184,77 @@ class OverlayChat:
         self.messages = []
         self.previous_t = False
 
-        header = tk.Label(
-            self.root, text="SESSIONCHAT", bg="#252525", fg="white",
-            font=("Segoe UI", 10, "bold"), anchor="w", padx=10, pady=7
-        )
-        header.pack(fill="x")
+        # Compact, low-contrast HUD. The whole window stays click-through
+        # until the player opens the composer with T.
+        shell = tk.Frame(self.root, bg=PANEL_BG, highlightthickness=1,
+                         highlightbackground="#30394A")
+        shell.pack(fill="both", expand=True)
 
-        self.status = tk.Label(
-            self.root, text="Waiting for Roblox session...",
-            bg="#171717", fg="#aaaaaa", font=("Segoe UI", 8),
-            anchor="w", padx=10
+        header = tk.Frame(shell, bg=SURFACE_BG, height=34)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+
+        brand = tk.Label(
+            header, text="●  SESSIONCHAT", bg=SURFACE_BG, fg="#DCE7F7",
+            font=("Segoe UI", 9, "bold"), anchor="w", padx=11
         )
-        self.status.pack(fill="x", pady=(4, 2))
+        brand.pack(side="left", fill="y")
+        self.room_badge = tk.Label(
+            header, text="WAITING", bg=SURFACE_BG, fg=MUTED_FG,
+            font=("Segoe UI", 7, "bold"), padx=9
+        )
+        self.room_badge.pack(side="right", fill="y")
+
+        status_row = tk.Frame(shell, bg=PANEL_BG)
+        status_row.pack(fill="x", padx=11, pady=(8, 3))
+        self.status = tk.Label(
+            status_row, text="Looking for Roblox session…",
+            bg=PANEL_BG, fg=MUTED_FG, font=("Segoe UI", 8),
+            anchor="w"
+        )
+        self.status.pack(side="left", fill="x", expand=True)
 
         self.chat = tk.Text(
-            self.root, bg="#171717", fg="#eeeeee",
+            shell, bg=PANEL_BG, fg="#D7DEEA",
             font=("Segoe UI", 9), relief="flat", wrap="word",
-            state="disabled", height=10, borderwidth=0
+            state="disabled", height=8, borderwidth=0,
+            padx=8, pady=5, spacing1=2, spacing3=3,
+            selectbackground="#34445C", highlightthickness=0
         )
-        self.chat.pack(fill="both", expand=True, padx=8, pady=5)
-        self.chat.tag_configure("system", foreground="#888888")
-        self.chat.tag_configure("nickname", foreground="#65b8ff")
+        self.chat.pack(fill="both", expand=True, padx=5, pady=(0, 5))
+        self.chat.tag_configure("system", foreground="#778397",
+                                font=("Segoe UI", 8, "italic"))
+        self.chat.tag_configure("nickname", foreground=ACCENT,
+                                font=("Segoe UI", 9, "bold"))
+        self.chat.tag_configure("body", foreground="#D7DEEA")
 
-        self.input_frame = tk.Frame(self.root, bg="#252525")
+        self.input_frame = tk.Frame(shell, bg=SURFACE_BG,
+                                    highlightthickness=1,
+                                    highlightbackground="#34445C")
         self.entry = tk.Entry(
-            self.input_frame, bg="#303030", fg="white",
-            insertbackground="white", relief="flat",
-            font=("Segoe UI", 10), borderwidth=5
+            self.input_frame, bg=SURFACE_BG, fg="#F3F6FC",
+            insertbackground="#F3F6FC", relief="flat",
+            font=("Segoe UI", 9), borderwidth=0
         )
-        self.entry.pack(fill="x", padx=6, pady=6)
+        self.entry.pack(fill="x", padx=10, pady=9)
         self.entry.bind("<Return>", self.on_enter)
         self.entry.bind("<Escape>", self.on_escape)
 
+        footer = tk.Frame(shell, bg=SURFACE_BG, height=25)
+        footer.pack(fill="x", side="bottom")
+        footer.pack_propagate(False)
         self.footer = tk.Label(
-            self.root, text="T: chat  |  /mute Nick",
-            bg="#252525", fg="#999999", font=("Segoe UI", 8),
-            anchor="w", padx=10, pady=5
+            footer, text="T  open chat     /mute name",
+            bg=SURFACE_BG, fg="#78869A", font=("Segoe UI", 7),
+            anchor="w", padx=10
         )
-        self.footer.pack(fill="x")
+        self.footer.pack(side="left", fill="y")
+        self.hint = tk.Label(
+            footer, text="ESC  close",
+            bg=SURFACE_BG, fg="#78869A", font=("Segoe UI", 7),
+            anchor="e", padx=10
+        )
+        self.hint.pack(side="right", fill="y")
 
         self.connection = ChatConnection(nickname, self.incoming)
         self.connection.start()
@@ -253,7 +290,7 @@ class OverlayChat:
         if self.input_active:
             return
         self.input_active = True
-        self.input_frame.pack(fill="x", before=self.footer)
+        self.input_frame.pack(fill="x", before=self.chat)
         self.disable_clickthrough()
         self.root.deiconify()
         self.root.lift()
@@ -333,7 +370,12 @@ class OverlayChat:
             elif kind == "system":
                 self.add_system_message(str(packet.get("message", "")))
             elif kind == "status":
-                self.status.configure(text=str(packet.get("message", "")))
+                message = str(packet.get("message", ""))
+                self.status.configure(text=message)
+                self.room_badge.configure(
+                    text="ONLINE" if message.startswith("Connected:") else "CONNECTING",
+                    fg="#8FD6B0" if message.startswith("Connected:") else "#D9B978"
+                )
             elif kind == "error":
                 self.add_system_message(str(packet.get("message", "")))
         self.root.after(100, self.process_messages)
