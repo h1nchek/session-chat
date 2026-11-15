@@ -75,9 +75,22 @@ Enter a nickname when prompted. When Roblox writes a matching session line to it
 
 The client does not need to identify whether Roblox was started by the official launcher, Bloxstrap, or Fishstrap. It watches the Roblox game-session log directory used by the running game client. Standard installations should work without launcher-specific configuration. If a custom setup writes the game log elsewhere, configure `ROBLOX_LOG_DIR`. This compatibility is based on the shared Roblox runtime/log format and has not yet been verified against every launcher version.
 
-## Android
+## Android companion app (initial build)
 
-An Android client is planned as a separate app. It can use the existing WebSocket room/message protocol, but it cannot read Windows Roblox logs or provide the same desktop click-through overlay. The first Android version should let the user enter a room ID manually (or receive it from a paired desktop client), then chat and manage nickname/mute/theme settings.
+A native Android companion app is in `android/`. It currently supports:
+
+- Joining a PC player's exact Roblox server with the temporary **4-digit room code** shown by the desktop overlay (in its footer and system chat).
+- Searching Roblox experiences by name, selecting a result, and joining the shared chat for its `PlaceId`.
+- Joining directly by numeric `PlaceId`.
+- Setting a nickname, reading chat, and sending messages.
+
+The PlaceId chat is shared across all running Roblox servers for that experience. The 4-digit code instead joins the exact desktop session. Codes are temporary, held in server memory, and expire when the desktop session that published the code disconnects or the server restarts.
+
+### Build Android app
+
+Open the `android/` directory in Android Studio and let Gradle sync. Build and install the `app` configuration. On the first screen, set **WebSocket server URL** to the address reachable from the phone, for example `ws://192.168.1.100:8765` for a server on the same Wi-Fi network. The default `ws://10.0.2.2:8765` is intended for the Android emulator when the server runs on the development computer.
+
+The server must be reachable from the phone and its port must be allowed through the host firewall. For internet use, deploy the server behind a secure WebSocket endpoint (`wss://`) and add proper authentication, TLS, and moderation before exposing it publicly. The current Android prototype uses plain WebSockets and is intended for development/testing, not an untrusted public server.
 
 ## Notes and limitations
 
