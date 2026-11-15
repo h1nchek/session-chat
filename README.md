@@ -9,6 +9,7 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 - Detects the latest Roblox log in `%LOCALAPPDATA%\Roblox\logs`.
 - Extracts the most recent `JobId` and `PlaceId` and joins room `PlaceId_JobId`.
 - Windows CustomTkinter overlay with rounded corners, transparency, and click-through mode.
+- Live online counter in the overlay header: SessionChat users in the exact Roblox server and across the whole experience (`PlaceId`).
 - Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
 - While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
 - Local `/mute Nick` command.
@@ -108,7 +109,7 @@ The server must be reachable from the phone and its port must be allowed through
 - The client uses WinAPI polling for the global `T` hotkey. The key may also be received by the game.
 - The server has no account authentication, transport encryption, or persistent history. Its basic anti-spam/anti-phishing filter is not a substitute for human moderation. Do not expose it directly to the public internet.
 - The overlay is Windows-only. The WebSocket server can run on other platforms.
-- Room IDs are based on values found in local Roblox logs; the server does not independently verify game-session membership.
+- Room IDs are based on values found in local Roblox logs; the server does not independently verify game-session membership. Online counts include connected SessionChat clients that supplied a matching PlaceId/session context; users in standalone private rooms without game context are not included.
 
 ## License
 
