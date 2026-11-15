@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import re
 import secrets
 import time
 
@@ -13,8 +14,18 @@ PORT = 8765
 rooms = {}          # room_id -> set of websocket connections
 nicknames = {}      # websocket -> nickname
 last_message = {}   # websocket -> monotonic timestamp
+last_message_text = {}
 client_rooms = {}   # websocket -> set of joined room IDs
-invite_codes = {}   # four-digit code -> private instance room ID
+invite_codes = {}   # four-digit code -> temporary room ID
+
+URL_PATTERN = re.compile(r"(?:https?://|www\.|\b[a-z0-9-]+\.(?:com|net|org|gg|ru|io|xyz)\b)", re.I)
+SCAM_PATTERNS = (
+    re.compile(r"free\s+robux", re.I),
+    re.compile(r"\b(verify|confirm)\s+(your\s+)?(roblox\s+)?(account|password)\b", re.I),
+    re.compile(r"\b(send|give|share)\s+(me\s+)?your\s+(password|login|cookie)\b", re.I),
+    re.compile(r"\bclaim\s+(your\s+)?(free\s+)?(reward|prize|robux)\b", re.I),
+    re.compile(r"\b(account|password)\s+(will be|is about to be)\s+(deleted|banned|locked)\b", re.I),
+)
 
 
 async def send_json(ws, payload):
@@ -43,12 +54,22 @@ async def broadcast(room_ids, payload):
 
 
 def make_invite_code():
-    # Codes are temporary, in-memory invitations, not account credentials.
+    # Short-lived invitation, not an account credential. Codes are unique
+    # while active and are removed when their room owner disconnects.
     for _ in range(100):
         code = f"{secrets.randbelow(10000):04d}"
         if code not in invite_codes:
             return code
     raise RuntimeError("No free room codes")
+
+
+def suspicious_message(text):
+    # Links are disabled in this minimal chat to reduce phishing risk.
+    if URL_PATTERN.search(text):
+        return "Links are disabled to help prevent phishing"
+    if any(pattern.search(text) for pattern in SCAM_PATTERNS):
+        return "Message blocked by the anti-scam filter"
+    return None
 
 
 async def handler(ws):
@@ -74,6 +95,8 @@ async def handler(ws):
             if not room_id:
                 await send_json(ws, {"type": "error", "message": "Room code not found or expired"})
                 return
+        elif join.get("create_private"):
+            room_id = "private:" + secrets.token_urlsafe(12)
         elif place_id:
             if not place_id.isdigit() or len(place_id) > 20:
                 await send_json(ws, {"type": "error", "message": "Invalid PlaceId"})
@@ -84,20 +107,24 @@ async def handler(ws):
             return
 
         joined_rooms.add(room_id)
-        # Desktop clients join their exact Roblox server and the game-wide
-        # PlaceId room. Mobile PlaceId users therefore share chat across servers.
+        # Desktop sessions also join the game-wide PlaceId room. A private
+        # room never joins the public game room.
         if join.get("share_code") and "_" in room_id:
             parsed_place_id = room_id.split("_", 1)[0]
             if parsed_place_id.isdigit():
                 joined_rooms.add(f"place:{parsed_place_id}")
                 invite_code = make_invite_code()
                 invite_codes[invite_code] = room_id
+        elif join.get("create_private"):
+            invite_code = make_invite_code()
+            invite_codes[invite_code] = room_id
 
         for joined_room in joined_rooms:
             rooms.setdefault(joined_room, set()).add(ws)
         client_rooms[ws] = joined_rooms
         nicknames[ws] = nickname
         last_message[ws] = 0.0
+        last_message_text[ws] = ""
 
         await send_json(ws, {"type": "status", "message": "Connected"})
         if invite_code:
@@ -115,6 +142,7 @@ async def handler(ws):
                 continue
 
             text = str(packet.get("text", "")).strip()[:200]
+            text = "".join(ch for ch in text if ch == "\t" or ord(ch) >= 32)
             if not text:
                 continue
 
@@ -122,11 +150,22 @@ async def handler(ws):
             if now - last_message[ws] < 1.0:
                 await send_json(ws, {
                     "type": "error",
-                    "message": "Rate limit: one message per second",
+                    "message": "Slow down: one message per second",
                 })
+                continue
+            if text.casefold() == last_message_text[ws].casefold() and now - last_message[ws] < 15:
+                await send_json(ws, {
+                    "type": "error",
+                    "message": "Repeated message blocked",
+                })
+                continue
+            warning = suspicious_message(text)
+            if warning:
+                await send_json(ws, {"type": "error", "message": warning})
                 continue
 
             last_message[ws] = now
+            last_message_text[ws] = text
             await broadcast(joined_rooms, {
                 "type": "message",
                 "nickname": nickname,
@@ -146,13 +185,13 @@ async def handler(ws):
         if nickname is not None:
             nicknames.pop(ws, None)
             last_message.pop(ws, None)
+            last_message_text.pop(ws, None)
             memberships = client_rooms.pop(ws, set())
             for joined_room in memberships:
                 members = rooms.get(joined_room, set())
                 members.discard(ws)
                 if not members:
                     rooms.pop(joined_room, None)
-            # Remove invitation when its owning desktop session disconnects.
             if invite_code:
                 invite_codes.pop(invite_code, None)
             if memberships:
