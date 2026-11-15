@@ -250,7 +250,7 @@ class OverlayChat:
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", WINDOW_ALPHA)
         self.root.configure(fg_color="#0D1118")
-        self.root.geometry("440x250+30+100")
+        self.root.geometry("480x250+30+100")
         self.root.resizable(False, False)
 
         self.input_active = False
