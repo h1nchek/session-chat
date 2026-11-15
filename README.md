@@ -1,129 +1,110 @@
 # SessionChat
 
-Minimalist real-time game overlay chat with automatic Roblox session detection.
+**A lightweight chat overlay that follows your Roblox game session.**
 
-**License:** GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+[English](README.md) · [Русский](README.ru.md) · [Website](https://h1nchek.github.io/session-chat/) · [Download for Windows](https://github.com/h1nchek/session-chat/releases/latest)
+
+---
+
+## What is SessionChat?
+
+SessionChat is an open-source real-time chat for playing Roblox together. The Windows overlay detects your active Roblox server from its local game log and connects you to the matching chat room.
+
+> **Project status:** early-stage community project. The desktop client is Windows-only. Read the security notes before running or hosting a server.
 
 ## Features
 
-- Detects the latest Roblox log in `%LOCALAPPDATA%\Roblox\logs`.
-- Extracts the most recent `JobId` and `PlaceId` and joins room `PlaceId_JobId`.
-- Windows CustomTkinter overlay with rounded corners, transparency, and click-through mode.
-- Live online counter in the overlay header: SessionChat users in the exact Roblox server and across the whole experience (`PlaceId`).
-- Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
-- While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
-- Local `/mute Nick` command.
-- Soft incoming-message notification tone with a one-click **♪ ON/OFF** toggle in the header (enabled by default).
-- Messages containing `@YourNickname` are highlighted in the chat; matching is case-insensitive.
-- `/global`, `/global on`, and `/global off` toggle a cross-server chat shared by all SessionChat users in the same `PlaceId`.
-- Create temporary private rooms and invite friends with a 4-digit code; desktop and Android clients can join with the same code.
-- Join a friend's room from the PC overlay through **Settings → Join by code**.
-- Server-side chat filter limits message frequency, blocks repeated messages, and rejects links and common account/Robux scam phrases.
-- Nicknames are limited to 20 characters and messages to 200 characters.
+- **Automatic session detection** — matches the current Roblox `PlaceId` and `JobId`.
+- **In-game overlay** — click-through window, adjustable opacity, draggable header and quick **T** hotkey.
+- **Server and experience chat** — talk to people in the same server or use `/global` for the whole experience.
+- **Private rooms** — create a temporary room and invite friends with a 4-digit code.
+- **Mentions and notifications** — highlight `@yourname` and optionally play a soft notification tone.
+- **Chat controls** — local `/mute Nick`, nickname settings and basic server-side spam/scam filtering.
+- **Android companion** — join a PC session by invite code or find an experience by name / PlaceId.
 
-## Requirements
+## Get started
 
-- Python 3.10 or newer
-- Windows for the overlay client
-- `websockets`
-- `customtkinter`
+### Windows app
 
-Install the dependency:
+1. Open [GitHub Releases](https://github.com/h1nchek/session-chat/releases).
+2. Download `SessionChat.exe` from the latest release.
+3. Run the application and choose a nickname.
+
+No Python installation is needed when using the packaged executable.
+
+### Run from source
+
+Requirements: Windows, Python 3.10+, and the packages in `requirements.txt`.
 
 ```bash
-python -m pip install websockets customtkinter
-```
-
-## Run the server
-
-On the host machine:
-
-```bash
-python server.py
-```
-
-The server listens on `0.0.0.0:8765`.
-
-## Configure and run the client
-
-Set `SERVER_URL` near the top of `client.py`. If your launcher uses a non-standard game-log directory, set `ROBLOX_LOG_DIR` to that folder before starting the client.
-
-For a server on the same computer:
-
-```python
-SERVER_URL = "ws://127.0.0.1:8765"
-```
-
-For another computer on your LAN, use its LAN IP address, for example:
-
-```python
-SERVER_URL = "ws://192.168.1.100:8765"
-```
-
-Then run:
-
-```bash
+python -m pip install -r requirements.txt
 python client.py
 ```
 
-Enter a nickname when prompted. When Roblox writes a matching session line to its log, the client automatically joins the corresponding room.
+The client uses `ws://127.0.0.1:8765` by default. Set `SERVER_URL` near the top of `client.py` to point to your own server. For a custom Roblox log directory, set the `ROBLOX_LOG_DIR` environment variable.
 
-## Download the Windows app
+### Run the server
 
-You do not need to install Python or run terminal commands to use the desktop client. Open the repository's **Releases** page and download `SessionChat.exe` from the latest release.
+```bash
+python -m pip install -r requirements.txt
+python server.py
+```
 
-When a version tag matching `v*` is published, GitHub Actions automatically builds the Windows executable from the tagged source code and attaches these files to that GitHub Release:
+The server listens on `0.0.0.0:8765` by default. Configure your client to use the server's reachable address.
 
-- `SessionChat.exe` — standalone Windows application.
-- `SHA256SUMS.txt` — SHA-256 checksum for checking that the downloaded file was not changed.
+**Do not expose the current server directly to the public internet.** See [Security](#security-and-privacy).
 
-The workflow also publishes a GitHub build-provenance attestation for the executable. This lets users verify which repository revision and GitHub Actions workflow produced the binary. The workflow's build output is also available as a temporary Actions artifact for manually started builds.
+## Using the overlay
 
-**Security note:** an automated build from public source improves transparency, but it does not prove that software is 100% virus-free. Users can inspect the source, verify the checksum, and verify the provenance attestation; antivirus tools may still produce false positives, and the build environment and dependencies remain part of the software supply chain.
-
-## Chat commands
-
-| Key / command | Action |
+| Control | Action |
 | --- | --- |
-| `T` | Open the input |
-| `Enter` | Send the message |
-| `Escape` | Close the input |
-| `/mute Nick` | Hide messages from that nickname locally |
-| `♪ ON/OFF` | Toggle incoming-message notification sound |
-| `@YourNickname` | Mention a player; their client highlights the message |
-| `/global` or `/global on` | Join the shared chat for the current `PlaceId`, across all Roblox `JobId` servers |
-| `/global off` | Leave the PlaceId-wide chat and keep the current server chat |
+| `T` | Open the chat input |
+| `Enter` | Send a message |
+| `Escape` | Close the input and return to click-through mode |
+| Gear icon | Open nickname, opacity and room settings |
+| Drag the header | Move the overlay while interactive |
+| `/mute Nick` | Hide messages from a nickname locally |
+| `/global` or `/global on` | Join the experience-wide chat |
+| `/global off` | Return to the current server chat |
+| `@YourNickname` | Mention a player |
 
-## Launcher compatibility
+Use **Settings → Join by code** to enter a friend's 4-digit room code, or choose **Create private** to create a temporary invite-only room.
 
-The client does not need to identify whether Roblox was started by the official launcher, Bloxstrap, or Fishstrap. It watches the Roblox game-session log directory used by the running game client. Standard installations should work without launcher-specific configuration. If a custom setup writes the game log elsewhere, configure `ROBLOX_LOG_DIR`. This compatibility is based on the shared Roblox runtime/log format and has not yet been verified against every launcher version.
+## Android companion
 
-## Android companion app (initial build)
+The Android project is in `android/`. Open that folder in Android Studio and allow Gradle to sync.
 
-A native Android companion app is in `android/`. It currently supports:
+The app supports:
+- Joining a desktop player's exact session with a 4-digit invite code.
+- Searching Roblox experiences by name.
+- Entering a numeric `PlaceId` directly.
+- Reading and sending chat messages.
 
-- Joining a PC player's exact Roblox server with the temporary **4-digit room code** shown by the desktop overlay (in its footer and system chat).
-- Joining a friend's exact PC session with a 4-digit invite code.
-- Searching Roblox experiences by name, selecting a result, and joining the shared chat for its `PlaceId`.
-- Pasting a numeric `PlaceId` into the same game search field to join directly.
-- Setting a nickname, reading chat, and sending messages.
+For a local development server, configure the app's WebSocket URL. The default `ws://10.0.2.2:8765` is for the Android emulator when the server runs on the host computer.
 
-Joining by PlaceId on Android opens the shared chat across all Roblox servers for that experience. On desktop, `/global` (or `/global on`) joins that same PlaceId-wide chat while retaining the current JobId room; `/global off` leaves it. The 4-digit code instead joins the exact desktop session. Codes are temporary, held in server memory, and expire when the desktop session that published the code disconnects or the server restarts.
+## Security and privacy
 
-### Build Android app
+SessionChat is an early-stage project, not a hardened public chat service.
 
-Open the `android/` directory in Android Studio and let Gradle sync. Build and install the `app` configuration. On the first screen, set **WebSocket server URL** to the address reachable from the phone, for example `ws://192.168.1.100:8765` for a server on the same Wi-Fi network. The default `ws://10.0.2.2:8765` is intended for the Android emulator when the server runs on the development computer.
+- The current server does **not** provide account authentication, transport encryption, or persistent message history.
+- The built-in rate limit and basic spam/scam filtering are not a replacement for authentication or human moderation.
+- Room IDs are derived from local Roblox logs and are not independently verified by Roblox.
+- Do not run an untrusted public server or expose port `8765 directly to the internet. For internet deployments, use a properly secured `wss://` endpoint, authentication, network protections and moderation.
+- The overlay reads local Roblox log files to detect the active game session.
 
-The server must be reachable from the phone and its port must be allowed through the host firewall. For internet use, deploy the server behind a secure WebSocket endpoint (`wss://`) and add proper authentication, TLS, and moderation before exposing it publicly. The current Android prototype uses plain WebSockets and is intended for development/testing, not an untrusted public server.
+### Windows build transparency
 
-## Notes and limitations
+Tagged releases are built by GitHub Actions. Release assets are intended to include:
+- `SessionChat.exe` — Windows desktop client.
+- `SHA256SUMS.txt` — checksum for integrity checking.
+- GitHub build-provenance attestation — information about the source revision and build workflow.
 
-- This is an early, minimal implementation, not a hardened public chat service.
-- The client uses WinAPI polling for the global `T` hotkey. The key may also be received by the game.
-- The server has no account authentication, transport encryption, or persistent history. Its basic anti-spam/anti-phishing filter is not a substitute for human moderation. Do not expose it directly to the public internet.
-- The overlay is Windows-only. The WebSocket server can run on other platforms.
-- Room IDs are based on values found in local Roblox logs; the server does not independently verify game-session membership. Online counts include connected SessionChat clients that supplied a matching PlaceId/session context; users in standalone private rooms without game context are not included.
+A checksum can detect an altered download; it does **not** prove that software is malware-free. Build dependencies and the build environment are also part of the software supply chain.
 
 ## License
 
-Distributed under the terms of the GNU Affero General Public License, version 3 or (at your option) any later version. See [LICENSE](LICENSE).
+SessionChat is distributed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**. See [LICENSE](LICENSE).
+
+---
+
+[Русская версия документации](README.ru.md) · [Website](https://h1nchek.github.io/session-chat/) · [Issues](https://github.com/h1nchek/session-chat/issues)
