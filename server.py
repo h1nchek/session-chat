@@ -16,6 +16,8 @@ nicknames = {}      # websocket -> nickname
 last_message = {}   # websocket -> monotonic timestamp
 last_message_text = {}
 client_rooms = {}   # websocket -> set of joined room IDs
+client_game_places = {}  # websocket -> PlaceId known from the join packet
+client_game_sessions = {}  # websocket -> exact PlaceId_JobId, when known
 invite_codes = {}   # four-digit code -> temporary room ID
 
 URL_PATTERN = re.compile(r"(?:https?://|www\.|\b[a-z0-9-]+\.(?:com|net|org|gg|ru|io|xyz)\b)", re.I)
@@ -51,6 +53,28 @@ async def broadcast(room_ids, payload):
         if isinstance(result, Exception):
             for members in rooms.values():
                 members.discard(client)
+
+
+async def broadcast_online_counts(place_id):
+    """Send live per-session and per-experience counts to clients in a game."""
+    if not place_id:
+        return
+    game_clients = [
+        client for client, known_place in client_game_places.items()
+        if known_place == place_id
+    ]
+    game_count = len(game_clients)
+    for client in game_clients:
+        session_id = client_game_sessions.get(client)
+        session_count = sum(
+            1 for other in game_clients
+            if session_id and client_game_sessions.get(other) == session_id
+        )
+        await send_json(client, {
+            "type": "online_counts",
+            "server": session_count,
+            "game": game_count,
+        })
 
 
 def make_invite_code():
@@ -111,10 +135,12 @@ async def handler(ws):
         joined_rooms.add(room_id)
         # Desktop starts in its exact JobId room. /global explicitly adds
         # the shared PlaceId room. A private invite remains private.
+        game_session_id = ""
         if join.get("share_code") and "_" in room_id:
             candidate_place_id = room_id.split("_", 1)[0]
             if candidate_place_id.isdigit():
                 game_place_id = candidate_place_id
+                game_session_id = room_id
         if join.get("share_code") and game_place_id:
             invite_code = make_invite_code()
             invite_codes[invite_code] = room_id
@@ -127,6 +153,10 @@ async def handler(ws):
         for joined_room in joined_rooms:
             rooms.setdefault(joined_room, set()).add(ws)
         client_rooms[ws] = joined_rooms
+        if game_place_id:
+            client_game_places[ws] = game_place_id
+        if game_session_id:
+            client_game_sessions[ws] = game_session_id
         nicknames[ws] = nickname
         last_message[ws] = 0.0
         last_message_text[ws] = ""
@@ -137,6 +167,7 @@ async def handler(ws):
         await broadcast(joined_rooms, {
             "type": "system", "message": f"{nickname} joined the chat"
         })
+        await broadcast_online_counts(game_place_id)
 
         async for raw in ws:
             try:
@@ -210,6 +241,8 @@ async def handler(ws):
         print(f"[ERROR] {exc}")
     finally:
         if nickname is not None:
+            departed_place = client_game_places.pop(ws, None)
+            client_game_sessions.pop(ws, None)
             nicknames.pop(ws, None)
             last_message.pop(ws, None)
             last_message_text.pop(ws, None)
@@ -225,6 +258,8 @@ async def handler(ws):
                 await broadcast(memberships, {
                     "type": "system", "message": f"{nickname} left the chat"
                 })
+            if departed_place:
+                await broadcast_online_counts(departed_place)
             print(f"[LEAVE] {nickname} ({', '.join(sorted(memberships))})")
 
 
