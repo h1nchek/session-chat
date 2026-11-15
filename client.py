@@ -17,7 +17,11 @@ from tkinter import simpledialog
 import websockets
 
 SERVER_URL = "ws://127.0.0.1:8765"
-LOG_DIR = Path(os.environ.get("LOCALAPPDATA", "")) / "Roblox" / "logs"
+LOCAL_APP_DATA = Path(os.environ.get("LOCALAPPDATA", ""))
+DEFAULT_LOG_DIR = LOCAL_APP_DATA / "Roblox" / "logs"
+# Bloxstrap and Fishstrap launch the same Roblox game runtime. In the usual
+# setup its game-session logs remain in Roblox/logs. Allow custom locations
+# for portable or non-standard installations via ROBLOX_LOG_DIR.
 LOG_PATTERN = re.compile(
     r"Joining game '([a-f0-9-]{36})' place (\d+)", re.IGNORECASE
 )
@@ -60,10 +64,34 @@ class LogWatcher(threading.Thread):
         self.running = True
         self.current_room = None
 
+    def log_directories(self):
+        candidates = []
+        custom_dir = os.environ.get("ROBLOX_LOG_DIR", "").strip()
+        if custom_dir:
+            candidates.append(Path(os.path.expandvars(custom_dir)).expanduser())
+        candidates.append(DEFAULT_LOG_DIR)
+
+        # Keep only unique existing directories. The launcher name is not
+        # used as a discriminator: Bloxstrap/Fishstrap normally start the
+        # same Roblox client, whose session log lives in Roblox/logs.
+        result = []
+        seen = set()
+        for directory in candidates:
+            try:
+                key = str(directory.resolve()).casefold()
+                if key not in seen and directory.is_dir():
+                    seen.add(key)
+                    result.append(directory)
+            except OSError:
+                continue
+        return result
+
     def run(self):
         while self.running:
             try:
-                files = list(LOG_DIR.glob("*.log"))
+                files = []
+                for directory in self.log_directories():
+                    files.extend(directory.glob("*.log"))
                 if files:
                     latest = max(files, key=lambda p: p.stat().st_mtime)
                     with latest.open("r", encoding="utf-8", errors="ignore") as f:
