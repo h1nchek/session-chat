@@ -9,7 +9,8 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 - Detects the latest Roblox log in `%LOCALAPPDATA%\Roblox\logs`.
 - Extracts the most recent `JobId` and `PlaceId` and joins room `PlaceId_JobId`.
 - Windows CustomTkinter overlay with rounded corners, transparency, and click-through mode.
-- Press **T** to open the chat input; **Enter** sends and **Escape** closes it.
+- Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
+- While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
 - Local `/mute Nick` command.
 - WebSocket server routes messages by room and limits each client to one message per second.
 - Nicknames are limited to 20 characters and messages to 200 characters.
