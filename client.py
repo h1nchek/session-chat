@@ -92,9 +92,14 @@ class ChatConnection(threading.Thread):
         self.outgoing = queue.Queue()
         self.room_id = None
         self.running = True
+        self.reconnect_requested = threading.Event()
 
     def change_room(self, room_id):
         self.room_id = room_id
+
+    def set_nickname(self, nickname):
+        self.nickname = nickname
+        self.reconnect_requested.set()
 
     def send_message(self, text):
         if text.strip():
@@ -137,7 +142,11 @@ class ChatConnection(threading.Thread):
                     })
                     receiver = asyncio.create_task(self.receive(ws))
                     try:
-                        while self.running and self.room_id == room:
+                        while (
+                            self.running
+                            and self.room_id == room
+                            and not self.reconnect_requested.is_set()
+                        ):
                             if receiver.done():
                                 await receiver
                                 break
@@ -157,6 +166,9 @@ class ChatConnection(threading.Thread):
                 self.incoming.put({
                     "type": "status", "message": f"Connection error: {exc}"
                 })
+            if self.reconnect_requested.is_set():
+                self.reconnect_requested.clear()
+                continue
             if self.running:
                 await asyncio.sleep(2)
 
@@ -186,6 +198,9 @@ class OverlayChat:
         self.incoming = queue.Queue()
         self.messages = []
         self.previous_t = False
+        self.window_alpha = WINDOW_ALPHA
+        self.drag_origin = None
+        self.settings_visible = False
 
         # Compact, low-contrast HUD. The whole window stays click-through
         # until the player opens the composer with T.
@@ -205,7 +220,15 @@ class OverlayChat:
             header, text="●  SESSIONCHAT", text_color="#DCE7F7",
             font=("Segoe UI", 10, "bold"), anchor="w"
         )
-        brand.pack(side="left", fill="y")
+        brand.pack(side="left", fill="y", padx=(10, 0))
+        self.gear_button = ctk.CTkButton(
+            header, text="⚙", width=30, height=28,
+            corner_radius=9, fg_color="transparent",
+            hover_color="#30394A", text_color="#AAB8CC",
+            font=("Segoe UI Symbol", 14),
+            command=self.toggle_settings
+        )
+        self.gear_button.pack(side="right", padx=(0, 5), pady=3)
         self.room_badge = ctk.CTkLabel(
             header, text="WAITING", text_color=MUTED_FG,
             font=("Segoe UI", 8, "bold")
@@ -219,6 +242,44 @@ class OverlayChat:
             text_color=MUTED_FG, font=("Segoe UI", 9), anchor="w"
         )
         self.status.pack(side="left", fill="x", expand=True)
+
+        self.settings_frame = ctk.CTkFrame(
+            shell, fg_color=SURFACE_BG, corner_radius=11,
+            border_width=1, border_color="#34445C"
+        )
+        settings_title = ctk.CTkLabel(
+            self.settings_frame, text="OVERLAY SETTINGS",
+            text_color="#DCE7F7", font=("Segoe UI", 9, "bold"),
+            anchor="w"
+        )
+        settings_title.pack(fill="x", padx=10, pady=(9, 4))
+        self.nickname_entry = ctk.CTkEntry(
+            self.settings_frame, height=30, corner_radius=8,
+            placeholder_text="Nickname", font=("Segoe UI", 9)
+        )
+        self.nickname_entry.insert(0, nickname)
+        self.nickname_entry.pack(fill="x", padx=9, pady=3)
+        self.save_nickname_button = ctk.CTkButton(
+            self.settings_frame, text="Save nickname",
+            height=27, corner_radius=8, font=("Segoe UI", 8, "bold"),
+            command=self.save_nickname
+        )
+        self.save_nickname_button.pack(fill="x", padx=9, pady=(2, 6))
+        opacity_row = ctk.CTkFrame(
+            self.settings_frame, fg_color="transparent"
+        )
+        opacity_row.pack(fill="x", padx=9, pady=(0, 8))
+        self.opacity_label = ctk.CTkLabel(
+            opacity_row, text="Opacity 90%",
+            text_color=MUTED_FG, font=("Segoe UI", 8)
+        )
+        self.opacity_label.pack(side="left")
+        self.opacity_slider = ctk.CTkSlider(
+            opacity_row, from_=45, to=100, number_of_steps=55,
+            width=145, height=14, command=self.change_opacity
+        )
+        self.opacity_slider.set(WINDOW_ALPHA * 100)
+        self.opacity_slider.pack(side="right", padx=(8, 0))
 
         self.chat = ctk.CTkTextbox(
             shell, fg_color="#171D27", text_color="#D7DEEA",
@@ -265,6 +326,11 @@ class OverlayChat:
         )
         self.hint.pack(side="right", fill="y")
 
+        # Dragging is enabled only while the overlay is interactive.
+        for widget in (header, brand, self.room_badge):
+            widget.bind("<ButtonPress-1>", self.start_drag)
+            widget.bind("<B1-Motion>", self.drag_window)
+
         self.connection = ChatConnection(nickname, self.incoming)
         self.connection.start()
         self.watcher = LogWatcher(self.connection.change_room)
@@ -279,8 +345,51 @@ class OverlayChat:
 
     def set_alpha(self):
         user32.SetLayeredWindowAttributes(
-            self.hwnd, 0, int(255 * WINDOW_ALPHA), LWA_ALPHA
+            self.hwnd, 0, int(255 * self.window_alpha), LWA_ALPHA
         )
+        self.root.attributes("-alpha", self.window_alpha)
+
+    def toggle_settings(self):
+        if not self.input_active:
+            return
+        if self.settings_visible:
+            self.settings_frame.pack_forget()
+            self.settings_visible = False
+        else:
+            self.settings_frame.pack(fill="x", padx=8, pady=(0, 6),
+                                     before=self.chat)
+            self.settings_visible = True
+
+    def change_opacity(self, value):
+        self.window_alpha = max(0.45, min(1.0, float(value) / 100))
+        self.opacity_label.configure(text=f"Opacity {round(self.window_alpha * 100)}%")
+        self.set_alpha()
+
+    def save_nickname(self):
+        nickname = self.nickname_entry.get().strip()[:20]
+        if not nickname:
+            self.add_system_message("Nickname cannot be empty")
+            return
+        self.nickname = nickname
+        self.connection.set_nickname(nickname)
+        self.nickname_entry.delete(0, "end")
+        self.nickname_entry.insert(0, nickname)
+        self.add_system_message(f"Nickname changed to {nickname}")
+
+    def start_drag(self, event):
+        if not self.input_active:
+            return
+        self.drag_origin = (
+            event.x_root - self.root.winfo_x(),
+            event.y_root - self.root.winfo_y()
+        )
+
+    def drag_window(self, event):
+        if not self.input_active or self.drag_origin is None:
+            return
+        x = event.x_root - self.drag_origin[0]
+        y = event.y_root - self.drag_origin[1]
+        self.root.geometry(f"+{x}+{y}")
 
     def enable_clickthrough(self):
         style = get_window_long(self.hwnd, GWL_EXSTYLE)
@@ -311,6 +420,9 @@ class OverlayChat:
             return
         self.input_active = False
         self.input_frame.pack_forget()
+        self.settings_frame.pack_forget()
+        self.settings_visible = False
+        self.drag_origin = None
         self.enable_clickthrough()
 
     def poll_keyboard(self):
