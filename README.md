@@ -12,6 +12,7 @@ Minimalist real-time game overlay chat with automatic Roblox session detection.
 - Press **T** to make the overlay interactive and open the chat input; **Enter** sends and **Escape** closes it.
 - While interactive, use the **gear** to change nickname and opacity, or drag the header to reposition the overlay. Click **Done** (or press Escape in the input) to restore click-through mode.
 - Local `/mute Nick` command.
+- `/global`, `/global on`, and `/global off` toggle a cross-server chat shared by all SessionChat users in the same `PlaceId`.
 - Create temporary private rooms and invite friends with a 4-digit code; desktop and Android clients can join with the same code.
 - Join a friend's room from the PC overlay through **Settings → Join by code**.
 - Server-side chat filter limits message frequency, blocks repeated messages, and rejects links and common account/Robux scam phrases.
@@ -72,6 +73,8 @@ Enter a nickname when prompted. When Roblox writes a matching session line to it
 | `Enter` | Send the message |
 | `Escape` | Close the input |
 | `/mute Nick` | Hide messages from that nickname locally |
+| `/global` or `/global on` | Join the shared chat for the current `PlaceId`, across all Roblox `JobId` servers |
+| `/global off` | Leave the PlaceId-wide chat and keep the current server chat |
 
 ## Launcher compatibility
 
@@ -87,7 +90,7 @@ A native Android companion app is in `android/`. It currently supports:
 - Pasting a numeric `PlaceId` into the same game search field to join directly.
 - Setting a nickname, reading chat, and sending messages.
 
-The PlaceId chat is shared across all running Roblox servers for that experience. The 4-digit code instead joins the exact desktop session. Codes are temporary, held in server memory, and expire when the desktop session that published the code disconnects or the server restarts.
+Joining by PlaceId on Android opens the shared chat across all Roblox servers for that experience. On desktop, `/global` (or `/global on`) joins that same PlaceId-wide chat while retaining the current JobId room; `/global off` leaves it. The 4-digit code instead joins the exact desktop session. Codes are temporary, held in server memory, and expire when the desktop session that published the code disconnects or the server restarts.
 
 ### Build Android app
 
