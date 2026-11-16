@@ -62,6 +62,7 @@ The server listens on `0.0.0.0:8765` by default. Configure your client to use th
 | `Enter` | Send a message |
 | `Escape` | Close the input and return to click-through mode |
 | Gear icon | Open nickname, opacity and room settings |
+| `×` in the header / `Exit SessionChat` in settings | Fully close the application |
 | Drag the header | Move the overlay while interactive |
 | `/mute Nick` | Hide messages from a nickname locally |
 | `/global` or `/global on` | Join the experience-wide chat |
