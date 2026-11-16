@@ -291,6 +291,13 @@ class OverlayChat:
             command=self.toggle_settings
         )
         self.gear_button.pack(side="right", padx=(0, 5), pady=3)
+        self.close_button = ctk.CTkButton(
+            header, text="×", width=27, height=28,
+            corner_radius=9, fg_color="transparent",
+            hover_color="#5A3038", text_color="#E5A8AE",
+            font=("Segoe UI", 15, "bold"), command=self.close
+        )
+        self.close_button.pack(side="right", padx=(0, 5), pady=3)
         self.sound_button = ctk.CTkButton(
             header, text="♪ ON", width=48, height=28,
             corner_radius=9, fg_color="transparent",
@@ -364,7 +371,14 @@ class OverlayChat:
             hover_color="#3B4960", text_color="#DCE7F7",
             font=("Segoe UI", 8), command=self.deactivate_input
         )
-        self.done_settings_button.pack(fill="x", padx=9, pady=(0, 7))
+        self.done_settings_button.pack(fill="x", padx=9, pady=(0, 5))
+        self.exit_button = ctk.CTkButton(
+            self.settings_frame, text="Exit SessionChat",
+            height=25, corner_radius=8, fg_color="#55323A",
+            hover_color="#70404A", text_color="#F2C5C9",
+            font=("Segoe UI", 8, "bold"), command=self.close
+        )
+        self.exit_button.pack(fill="x", padx=9, pady=(0, 7))
         opacity_row = ctk.CTkFrame(
             self.settings_frame, fg_color="transparent"
         )
